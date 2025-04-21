@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import WorkoutFilters from "./WorkoutFilters";
 import { filterWorkouts, sortWorkouts } from "../../utils/workoutUtils";
+import WorkoutStats from './WorkoutStats';
 
 const Container = styled.div`
   padding: 2rem;
@@ -158,13 +159,16 @@ const WorkoutGenerator = () => {
       </MuscleGroupSelector>
 
       {selectedMuscle && (
-        <WorkoutFilters
-          filters={filters}
-          setFilters={setFilters}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          onApplyFilters={handleApplyFilters}
-        />
+        <>
+          <WorkoutFilters
+            filters={filters}
+            setFilters={setFilters}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            onApplyFilters={handleApplyFilters}
+          />
+          <WorkoutStats workouts={workouts} />
+        </>
       )}
 
       {loading && (
