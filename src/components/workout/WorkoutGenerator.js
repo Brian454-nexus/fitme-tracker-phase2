@@ -55,6 +55,24 @@ const ExerciseCard = styled(motion.div)`
   margin-bottom: 1rem;
 `;
 
+const LoadingSpinner = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #2c3e50;
+`;
+
+const ErrorMessage = styled.div`
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+`;
+
 const ModelViewer = ({ modelPath }) => {
   const { scene } = useGLTF(modelPath);
   return <primitive object={scene} scale={0.5} />;
@@ -64,6 +82,7 @@ const WorkoutGenerator = () => {
   const [selectedMuscle, setSelectedMuscle] = useState(null);
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const muscleGroups = [
     { name: 'Chest', model: '/models/chest.glb' },
@@ -76,6 +95,7 @@ const WorkoutGenerator = () => {
 
   const fetchWorkouts = async (muscle) => {
     setLoading(true);
+    setError(null);
     try {
       const response = await axios.get(`https://api.api-ninjas.com/v1/exercises?muscle=${muscle.toLowerCase()}`, {
         headers: {
@@ -84,6 +104,7 @@ const WorkoutGenerator = () => {
       });
       setWorkouts(response.data);
     } catch (error) {
+      setError('Failed to fetch workouts. Please try again later.');
       console.error('Error fetching workouts:', error);
     }
     setLoading(false);
@@ -118,7 +139,18 @@ const WorkoutGenerator = () => {
         ))}
       </MuscleGroupSelector>
 
-      {loading && <p>Loading workouts...</p>}
+      {loading && (
+        <LoadingSpinner>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            🔄
+          </motion.div>
+        </LoadingSpinner>
+      )}
+
+      {error && <ErrorMessage>{error}</ErrorMessage>}
 
       {workouts.length > 0 && (
         <WorkoutDisplay>
