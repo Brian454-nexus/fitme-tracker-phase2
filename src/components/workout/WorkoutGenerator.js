@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import axios from 'axios';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import axios from "axios";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import WorkoutFilters from "./WorkoutFilters";
+import { filterWorkouts, sortWorkouts } from "../../utils/workoutUtils";
 
 const Container = styled.div`
   padding: 2rem;
@@ -83,29 +85,38 @@ const WorkoutGenerator = () => {
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    difficulty: "",
+    equipment: "",
+    type: "",
+  });
+  const [sortBy, setSortBy] = useState("name");
 
   const muscleGroups = [
-    { name: 'Chest', model: '/models/chest.glb' },
-    { name: 'Back', model: '/models/back.glb' },
-    { name: 'Legs', model: '/models/legs.glb' },
-    { name: 'Arms', model: '/models/arms.glb' },
-    { name: 'Shoulders', model: '/models/shoulders.glb' },
-    { name: 'Core', model: '/models/core.glb' }
+    { name: "Chest", model: "/models/chest.glb" },
+    { name: "Back", model: "/models/back.glb" },
+    { name: "Legs", model: "/models/legs.glb" },
+    { name: "Arms", model: "/models/arms.glb" },
+    { name: "Shoulders", model: "/models/shoulders.glb" },
+    { name: "Core", model: "/models/core.glb" },
   ];
 
   const fetchWorkouts = async (muscle) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`https://api.api-ninjas.com/v1/exercises?muscle=${muscle.toLowerCase()}`, {
-        headers: {
-          'X-Api-Key': process.env.REACT_APP_API_NINJAS_KEY
+      const response = await axios.get(
+        `https://api.api-ninjas.com/v1/exercises?muscle=${muscle.toLowerCase()}`,
+        {
+          headers: {
+            "X-Api-Key": process.env.REACT_APP_API_NINJAS_KEY,
+          },
         }
-      });
+      );
       setWorkouts(response.data);
     } catch (error) {
-      setError('Failed to fetch workouts. Please try again later.');
-      console.error('Error fetching workouts:', error);
+      setError("Failed to fetch workouts. Please try again later.");
+      console.error("Error fetching workouts:", error);
     }
     setLoading(false);
   };
@@ -113,6 +124,13 @@ const WorkoutGenerator = () => {
   const handleMuscleSelect = (muscle) => {
     setSelectedMuscle(muscle);
     fetchWorkouts(muscle);
+  };
+
+  const handleApplyFilters = () => {
+    // Filter and sort the workouts
+    const filteredWorkouts = filterWorkouts(workouts, filters);
+    const sortedWorkouts = sortWorkouts(filteredWorkouts, sortBy);
+    setWorkouts(sortedWorkouts);
   };
 
   return (
@@ -127,7 +145,7 @@ const WorkoutGenerator = () => {
             whileTap={{ scale: 0.95 }}
           >
             <h3>{muscle.name}</h3>
-            <div style={{ height: '200px' }}>
+            <div style={{ height: "200px" }}>
               <Canvas>
                 <ambientLight intensity={0.5} />
                 <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
@@ -138,6 +156,16 @@ const WorkoutGenerator = () => {
           </MuscleCard>
         ))}
       </MuscleGroupSelector>
+
+      {selectedMuscle && (
+        <WorkoutFilters
+          filters={filters}
+          setFilters={setFilters}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          onApplyFilters={handleApplyFilters}
+        />
+      )}
 
       {loading && (
         <LoadingSpinner>
@@ -174,4 +202,4 @@ const WorkoutGenerator = () => {
   );
 };
 
-export default WorkoutGenerator; 
+export default WorkoutGenerator;
