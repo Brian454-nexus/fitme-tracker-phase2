@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
-import { getModelConfig } from '../../utils/modelUtils';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import { getModelConfig } from "../../utils/modelUtils";
 
 const Card = styled(motion.div)`
   background: white;
@@ -30,16 +30,16 @@ const ExerciseTitle = styled.h3`
 const DifficultyBadge = styled.span`
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  background: ${props => {
+  background: ${(props) => {
     switch (props.difficulty) {
-      case 'beginner':
-        return '#4CAF50';
-      case 'intermediate':
-        return '#FFC107';
-      case 'expert':
-        return '#F44336';
+      case "beginner":
+        return "#4CAF50";
+      case "intermediate":
+        return "#FFC107";
+      case "expert":
+        return "#F44336";
       default:
-        return '#9E9E9E';
+        return "#9E9E9E";
     }
   }};
   color: white;
@@ -95,12 +95,16 @@ const ExerciseCard = ({ exercise }) => {
         <Instructions>
           <h4>Instructions:</h4>
           <p>{exercise.instructions}</p>
-          <p><strong>Equipment:</strong> {exercise.equipment}</p>
-          <p><strong>Muscle Group:</strong> {exercise.muscle}</p>
+          <p>
+            <strong>Equipment:</strong> {exercise.equipment}
+          </p>
+          <p>
+            <strong>Muscle Group:</strong> {exercise.muscle}
+          </p>
         </Instructions>
       )}
     </Card>
   );
 };
 
-export default ExerciseCard; 
+export default ExerciseCard;
