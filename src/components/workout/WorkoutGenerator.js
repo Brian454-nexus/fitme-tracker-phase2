@@ -7,6 +7,7 @@ import { OrbitControls, useGLTF } from "@react-three/drei";
 import WorkoutFilters from "./WorkoutFilters";
 import { filterWorkouts, sortWorkouts } from "../../utils/workoutUtils";
 import WorkoutStats from './WorkoutStats';
+import FavoriteWorkouts from './FavoriteWorkouts';
 
 const Container = styled.div`
   padding: 2rem;
@@ -168,6 +169,7 @@ const WorkoutGenerator = () => {
   return (
     <Container>
       <Title>Generate Your Workout</Title>
+      <FavoriteWorkouts />
       <MuscleGroupSelector>
         {muscleGroups.map((muscle, index) => (
           <MuscleCard
