@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { getModelConfig } from "../../utils/modelUtils";
+import { useFavorites } from "../../hooks/useFavorites";
 
 const Card = styled(motion.div)`
   background: white;
@@ -61,7 +62,13 @@ const Instructions = styled.div`
 
 const ExerciseCard = ({ exercise }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
   const modelConfig = getModelConfig(exercise.muscle);
+
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    toggleFavorite(exercise);
+  };
 
   return (
     <Card
@@ -72,9 +79,24 @@ const ExerciseCard = ({ exercise }) => {
     >
       <ExerciseHeader>
         <ExerciseTitle>{exercise.name}</ExerciseTitle>
-        <DifficultyBadge difficulty={exercise.difficulty}>
-          {exercise.difficulty}
-        </DifficultyBadge>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <DifficultyBadge difficulty={exercise.difficulty}>
+            {exercise.difficulty}
+          </DifficultyBadge>
+          <motion.button
+            onClick={handleFavoriteClick}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "1.5rem",
+            }}
+          >
+            {isFavorite(exercise.name) ? "❤️" : "🤍"}
+          </motion.button>
+        </div>
       </ExerciseHeader>
 
       <ModelContainer>
@@ -101,6 +123,24 @@ const ExerciseCard = ({ exercise }) => {
           <p>
             <strong>Muscle Group:</strong> {exercise.muscle}
           </p>
+          <p>
+            <strong>Type:</strong> {exercise.type}
+          </p>
+          {exercise.force && (
+            <p>
+              <strong>Force:</strong> {exercise.force}
+            </p>
+          )}
+          {exercise.level && (
+            <p>
+              <strong>Level:</strong> {exercise.level}
+            </p>
+          )}
+          {exercise.mechanic && (
+            <p>
+              <strong>Mechanic:</strong> {exercise.mechanic}
+            </p>
+          )}
         </Instructions>
       )}
     </Card>
