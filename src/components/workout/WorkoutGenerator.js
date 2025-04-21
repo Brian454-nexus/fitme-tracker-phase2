@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -6,13 +6,17 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import WorkoutFilters from "./WorkoutFilters";
 import { filterWorkouts, sortWorkouts } from "../../utils/workoutUtils";
-import WorkoutStats from './WorkoutStats';
-import FavoriteWorkouts from './FavoriteWorkouts';
+import WorkoutStats from "./WorkoutStats";
+import FavoriteWorkouts from "./FavoriteWorkouts";
+import ExerciseCard from "./ExerciseCard";
+import PlaceholderModel from "./PlaceholderModel";
 
 const Container = styled.div`
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
 `;
 
 const Title = styled.h1`
@@ -20,11 +24,12 @@ const Title = styled.h1`
   color: #2c3e50;
   text-align: center;
   margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const MuscleGroupSelector = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 `;
@@ -39,20 +44,26 @@ const MuscleCard = styled(motion.div)`
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-color: #3498db;
   }
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(45deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+    background: linear-gradient(
+      45deg,
+      rgba(52, 152, 219, 0.1),
+      rgba(46, 204, 113, 0.1)
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -67,12 +78,17 @@ const MuscleTitle = styled(motion.h3)`
   margin-bottom: 1rem;
   position: relative;
   z-index: 1;
+  font-size: 1.5rem;
+  font-weight: 600;
 `;
 
 const ModelContainer = styled(motion.div)`
   height: 200px;
   position: relative;
   z-index: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f8f9fa;
 `;
 
 const WorkoutDisplay = styled.div`
@@ -81,13 +97,7 @@ const WorkoutDisplay = styled.div`
   padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-top: 2rem;
-`;
-
-const ExerciseCard = styled(motion.div)`
-  background: #f8f9fa;
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  border: 1px solid #eee;
 `;
 
 const LoadingSpinner = styled.div`
@@ -106,11 +116,11 @@ const ErrorMessage = styled.div`
   border-radius: 8px;
   margin: 1rem 0;
   text-align: center;
+  border: 1px solid #ef9a9a;
 `;
 
-const ModelViewer = ({ modelPath }) => {
-  const { scene } = useGLTF(modelPath);
-  return <primitive object={scene} scale={0.5} />;
+const ModelViewer = ({ muscle }) => {
+  return <PlaceholderModel muscleGroup={muscle} />;
 };
 
 const WorkoutGenerator = () => {
@@ -126,12 +136,12 @@ const WorkoutGenerator = () => {
   const [sortBy, setSortBy] = useState("name");
 
   const muscleGroups = [
-    { name: "Chest", model: "/models/chest.glb" },
-    { name: "Back", model: "/models/back.glb" },
-    { name: "Legs", model: "/models/legs.glb" },
-    { name: "Arms", model: "/models/arms.glb" },
-    { name: "Shoulders", model: "/models/shoulders.glb" },
-    { name: "Core", model: "/models/core.glb" },
+    { name: "Chest", muscle: "chest" },
+    { name: "Back", muscle: "back" },
+    { name: "Legs", muscle: "legs" },
+    { name: "Arms", muscle: "arms" },
+    { name: "Shoulders", muscle: "shoulders" },
+    { name: "Core", muscle: "core" },
   ];
 
   const fetchWorkouts = async (muscle) => {
@@ -193,12 +203,7 @@ const WorkoutGenerator = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 + 0.3 }}
             >
-              <Canvas>
-                <ambientLight intensity={0.5} />
-                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-                <ModelViewer modelPath={muscle.model} />
-                <OrbitControls />
-              </Canvas>
+              <ModelViewer muscle={muscle.muscle} />
             </ModelContainer>
           </MuscleCard>
         ))}
