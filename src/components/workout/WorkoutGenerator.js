@@ -36,11 +36,42 @@ const MuscleCard = styled(motion.div)`
   cursor: pointer;
   text-align: center;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+`;
+
+const MuscleTitle = styled(motion.h3)`
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+`;
+
+const ModelContainer = styled(motion.div)`
+  height: 200px;
+  position: relative;
+  z-index: 1;
 `;
 
 const WorkoutDisplay = styled.div`
@@ -138,22 +169,35 @@ const WorkoutGenerator = () => {
     <Container>
       <Title>Generate Your Workout</Title>
       <MuscleGroupSelector>
-        {muscleGroups.map((muscle) => (
+        {muscleGroups.map((muscle, index) => (
           <MuscleCard
             key={muscle.name}
             onClick={() => handleMuscleSelect(muscle.name)}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <h3>{muscle.name}</h3>
-            <div style={{ height: "200px" }}>
+            <MuscleTitle
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.1 + 0.2 }}
+            >
+              {muscle.name}
+            </MuscleTitle>
+            <ModelContainer
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 + 0.3 }}
+            >
               <Canvas>
                 <ambientLight intensity={0.5} />
                 <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
                 <ModelViewer modelPath={muscle.model} />
                 <OrbitControls />
               </Canvas>
-            </div>
+            </ModelContainer>
           </MuscleCard>
         ))}
       </MuscleGroupSelector>
