@@ -222,6 +222,48 @@ const ButtonContainer = styled.div`
   margin-top: 2rem;
 `;
 
+const MeasurementContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+`;
+
+const MeasurementInput = styled.input`
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid ${theme.border};
+  border-radius: 8px;
+  font-size: 1.1rem;
+  background: ${theme.cardBackground};
+  color: ${theme.text};
+  text-align: center;
+
+  &:focus {
+    outline: none;
+    border-color: ${theme.accent};
+  }
+`;
+
+const UnitSelect = styled.select`
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid ${theme.border};
+  border-radius: 8px;
+  font-size: 1.1rem;
+  background: ${theme.cardBackground};
+  color: ${theme.text};
+  text-align: center;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: ${theme.accent};
+  }
+`;
+
 const questions = [
   {
     id: 1,
@@ -628,42 +670,72 @@ const FitMeQuiz = () => {
             <Question>{questions[currentQuestion].question}</Question>
 
             {questions[currentQuestion].type === "measurement" ? (
-              <HeightWeightContainer>
-                <HeightWeightSection>
-                  <HeightWeightTitle>Height (cm)</HeightWeightTitle>
-                  <HeightWeightInput
-                    type="number"
-                    value={measurementValues.height.value}
-                    onChange={(e) =>
-                      handleMeasurementChange(
-                        "height",
-                        e.target.value,
-                        measurementValues.height.unit
-                      )
+              <MeasurementContainer>
+                <MeasurementInput
+                  type="number"
+                  value={
+                    measurementValues[
+                      questions[currentQuestion].id === 3 ? "height" : "weight"
+                    ].value
+                  }
+                  onChange={(e) =>
+                    handleMeasurementChange(
+                      questions[currentQuestion].id === 3 ? "height" : "weight",
+                      e.target.value,
+                      measurementValues[
+                        questions[currentQuestion].id === 3
+                          ? "height"
+                          : "weight"
+                      ].unit
+                    )
+                  }
+                  min={questions[currentQuestion].id === 3 ? "100" : "30"}
+                  max={questions[currentQuestion].id === 3 ? "250" : "200"}
+                  placeholder={`Enter ${
+                    questions[currentQuestion].id === 3 ? "height" : "weight"
+                  }`}
+                />
+                <UnitSelect
+                  value={
+                    measurementValues[
+                      questions[currentQuestion].id === 3 ? "height" : "weight"
+                    ].unit
+                  }
+                  onChange={(e) =>
+                    handleMeasurementChange(
+                      questions[currentQuestion].id === 3 ? "height" : "weight",
+                      measurementValues[
+                        questions[currentQuestion].id === 3
+                          ? "height"
+                          : "weight"
+                      ].value,
+                      e.target.value
+                    )
+                  }
+                >
+                  {questions[currentQuestion].unit.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </UnitSelect>
+                <ButtonContainer>
+                  <NextButton
+                    onClick={handleNext}
+                    disabled={
+                      !measurementValues[
+                        questions[currentQuestion].id === 3
+                          ? "height"
+                          : "weight"
+                      ].value
                     }
-                    min="100"
-                    max="250"
-                    placeholder="Enter height"
-                  />
-                </HeightWeightSection>
-                <HeightWeightSection>
-                  <HeightWeightTitle>Weight (kg)</HeightWeightTitle>
-                  <HeightWeightInput
-                    type="number"
-                    value={measurementValues.weight.value}
-                    onChange={(e) =>
-                      handleMeasurementChange(
-                        "weight",
-                        e.target.value,
-                        measurementValues.weight.unit
-                      )
-                    }
-                    min="30"
-                    max="200"
-                    placeholder="Enter weight"
-                  />
-                </HeightWeightSection>
-              </HeightWeightContainer>
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Next
+                  </NextButton>
+                </ButtonContainer>
+              </MeasurementContainer>
             ) : (
               <OptionsContainer layout={questions[currentQuestion].layout}>
                 {questions[currentQuestion].options.map((option, index) => (
@@ -684,22 +756,6 @@ const FitMeQuiz = () => {
                   </Option>
                 ))}
               </OptionsContainer>
-            )}
-
-            {currentQuestion === 2 && (
-              <ButtonContainer>
-                <NextButton
-                  onClick={handleNext}
-                  disabled={
-                    !measurementValues.height.value ||
-                    !measurementValues.weight.value
-                  }
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Next
-                </NextButton>
-              </ButtonContainer>
             )}
           </QuestionContainer>
         )}
