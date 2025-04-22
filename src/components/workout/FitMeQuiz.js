@@ -574,9 +574,12 @@ const FitMeQuiz = () => {
       </ProgressText>
       <ProgressBar progress={progress} />
 
-      {currentQuestion > 0 && !showBMI && (
+      {currentQuestion > 0 && (
         <BackButton
-          onClick={() => setCurrentQuestion((prev) => prev - 1)}
+          onClick={() => {
+            setShowBMI(false);
+            setCurrentQuestion((prev) => prev - 1);
+          }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -595,17 +598,22 @@ const FitMeQuiz = () => {
             <BMIText>Your BMI: {bmi}</BMIText>
             <BMIText>
               Category:{" "}
-              <BMICategory color={bmiCategory.color}>
+              <BMICategory category={bmiCategory.category}>
                 {bmiCategory.category}
               </BMICategory>
             </BMIText>
-            <NextButton
-              onClick={handleNext}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Continue
-            </NextButton>
+            <ButtonContainer>
+              <NextButton
+                onClick={() => {
+                  setShowBMI(false);
+                  setCurrentQuestion((prev) => prev + 1);
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Continue
+              </NextButton>
+            </ButtonContainer>
           </BMIDisplay>
         ) : (
           <QuestionContainer
