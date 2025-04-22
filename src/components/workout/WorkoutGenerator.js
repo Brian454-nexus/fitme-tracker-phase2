@@ -94,13 +94,6 @@ const ModelContainer = styled.div`
   overflow: hidden;
 `;
 
-const PlaceholderText = styled.div`
-  color: ${(props) => props.theme.text};
-  font-size: 0.9rem;
-  text-align: center;
-  padding: 1rem;
-`;
-
 const WorkoutList = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
