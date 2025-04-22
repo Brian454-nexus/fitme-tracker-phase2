@@ -522,38 +522,6 @@ const FitMeQuiz = () => {
     };
     setAnswers(newAnswers);
 
-    if (currentQuestion === 2) {
-      // Height question
-      const height = parseFloat(measurementValues.height.value);
-      const weight = parseFloat(measurementValues.weight.value);
-      if (height && weight) {
-        const calculatedBMI = calculateBMI(
-          height,
-          weight,
-          measurementValues.height.unit === "cm" ? "metric" : "imperial"
-        );
-        setBMI(calculatedBMI);
-        setBMICategory(getBMICategory(calculatedBMI));
-        setShowBMI(true);
-        return;
-      }
-    } else if (currentQuestion === 3) {
-      // Weight question
-      const weight = parseFloat(measurementValues.weight.value);
-      const height = parseFloat(measurementValues.height.value);
-      if (height && weight) {
-        const calculatedBMI = calculateBMI(
-          height,
-          weight,
-          measurementValues.height.unit === "cm" ? "metric" : "imperial"
-        );
-        setBMI(calculatedBMI);
-        setBMICategory(getBMICategory(calculatedBMI));
-        setShowBMI(true);
-        return;
-      }
-    }
-
     setDirection(1);
     if (currentQuestion < questions.length - 1) {
       setTimeout(() => setCurrentQuestion(currentQuestion + 1), 500);
@@ -570,6 +538,23 @@ const FitMeQuiz = () => {
   };
 
   const handleNext = () => {
+    // If we're on the weight question (id: 4), calculate BMI
+    if (currentQuestion === 3) {
+      const height = parseFloat(measurementValues.height.value);
+      const weight = parseFloat(measurementValues.weight.value);
+      if (height && weight) {
+        const calculatedBMI = calculateBMI(
+          height,
+          weight,
+          measurementValues.height.unit === "cm" ? "metric" : "imperial"
+        );
+        setBMI(calculatedBMI);
+        setBMICategory(getBMICategory(calculatedBMI));
+        setShowBMI(true);
+        return;
+      }
+    }
+
     setShowBMI(false);
     setCurrentQuestion((prev) => prev + 1);
   };
