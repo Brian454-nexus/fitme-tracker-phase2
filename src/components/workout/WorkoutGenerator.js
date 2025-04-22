@@ -170,23 +170,6 @@ const muscleGroups = [
   { name: "Abs", value: "abs", image: "/images/muscles/core.png" },
 ];
 
-const ImageViewer = ({ muscle, image }) => {
-  const [error, setError] = useState(false);
-
-  if (error) {
-    return <PlaceholderText>Image not available</PlaceholderText>;
-  }
-
-  return (
-    <img
-      src={image}
-      alt={`${muscle} muscle`}
-      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      onError={() => setError(true)}
-    />
-  );
-};
-
 const WorkoutGenerator = () => {
   const [selectedMuscle, setSelectedMuscle] = useState(null);
   const [workouts, setWorkouts] = useState([]);
