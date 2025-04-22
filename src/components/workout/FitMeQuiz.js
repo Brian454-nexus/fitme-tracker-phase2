@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiClock,
+  FiZap,
+  FiMapPin,
+  FiCalendar,
+  FiCheckCircle,
+  FiArrowRight,
+} from "react-icons/fi"; // Import icons
 
 const theme = {
   primary: "#FF4500",
@@ -69,9 +77,11 @@ const Option = styled(motion.button)`
   transition: all 0.3s ease;
   text-align: left;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
   min-width: ${(props) => (props.size === "large" ? "300px" : "200px")};
+  min-height: 100px;
   position: relative;
   overflow: hidden;
 
@@ -84,6 +94,11 @@ const Option = styled(motion.button)`
     background: ${theme.primary};
     border-color: ${theme.primary};
   }
+`;
+
+const OptionText = styled.span`
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
 `;
 
 const OptionImage = styled.img`
@@ -156,23 +171,6 @@ const NextButton = styled(motion.button)`
   cursor: pointer;
   margin-top: 1rem;
   font-weight: 600;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-const SubmitButton = styled(motion.button)`
-  padding: 1rem 2rem;
-  background: ${theme.accent};
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-top: 2rem;
-  width: 100%;
 
   &:hover {
     opacity: 0.9;
@@ -268,9 +266,9 @@ const questions = [
     id: 5,
     question: "What is your body type?",
     options: [
-      { text: "Slim", image: "/images/body/slim.png" },
-      { text: "Average", image: "/images/body/average.png" },
-      { text: "Heavy", image: "/images/body/heavy.png" },
+      { text: "Slim", image: "/images/body/slim.png", value: "slim" },
+      { text: "Average", image: "/images/body/average.png", value: "average" },
+      { text: "Heavy", image: "/images/body/heavy.png", value: "heavy" },
     ],
     layout: "vertical",
     size: "medium",
@@ -279,9 +277,21 @@ const questions = [
     id: 6,
     question: "What is your fitness goal?",
     options: [
-      { text: "Lose Weight", image: "/images/goals/weight-loss.png" },
-      { text: "Gain Muscle Mass", image: "/images/goals/muscle-gain.png" },
-      { text: "Get Shredded", image: "/images/goals/shredded.png" },
+      {
+        text: "Lose Weight",
+        image: "/images/goals/weight-loss.png",
+        value: "lose_weight",
+      },
+      {
+        text: "Gain Muscle Mass",
+        image: "/images/goals/muscle-gain.png",
+        value: "gain_muscle",
+      },
+      {
+        text: "Get Shredded",
+        image: "/images/goals/shredded.png",
+        value: "get_shredded",
+      },
     ],
     layout: "vertical",
     size: "medium",
@@ -290,161 +300,99 @@ const questions = [
     id: 7,
     question: "What is your current fitness level?",
     options: [
-      "Beginner (new to exercise)",
-      "Intermediate (some experience)",
-      "Advanced (regular exerciser)",
-      "Expert (competitive athlete)",
+      { text: "Beginner (new to exercise)", value: "beginner" },
+      { text: "Intermediate (some experience)", value: "intermediate" },
+      { text: "Advanced (regular exerciser)", value: "advanced" },
+      { text: "Expert (competitive athlete)", value: "expert" },
     ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 8,
     question: "How many days per week can you commit to working out?",
-    options: ["1-2 days", "3-4 days", "5-6 days", "7 days"],
+    options: [
+      { text: "1-2 days", value: "1-2" },
+      { text: "3-4 days", value: "3-4" },
+      { text: "5-6 days", value: "5-6" },
+      { text: "7 days", value: "7" },
+    ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 9,
     question: "What type of workouts do you prefer?",
     options: [
-      "Strength training with weights",
-      "Bodyweight exercises",
-      "Cardio and endurance",
-      "Flexibility and mobility",
+      { text: "Strength training with weights", value: "strength" },
+      { text: "Bodyweight exercises", value: "bodyweight" },
+      { text: "Cardio and endurance", value: "cardio" },
+      { text: "Flexibility and mobility", value: "flexibility" },
     ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 10,
     question: "Do you have any specific health concerns or limitations?",
     options: [
-      "No limitations",
-      "Joint issues",
-      "Back problems",
-      "Other health concerns",
+      { text: "No limitations", value: "none" },
+      { text: "Joint issues", value: "joint" },
+      { text: "Back problems", value: "back" },
+      { text: "Other health concerns", value: "other_health" },
     ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 11,
     question: "How would you describe your current diet?",
     options: [
-      "Balanced and healthy",
-      "Average, could be better",
-      "Poor, needs improvement",
-      "Following a specific diet plan",
+      { text: "Balanced and healthy", value: "balanced" },
+      { text: "Average, could be better", value: "average_diet" },
+      { text: "Poor, needs improvement", value: "poor_diet" },
+      { text: "Following a specific diet plan", value: "specific_diet" },
     ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 12,
     question: "What time of day do you prefer to workout?",
     options: [
-      "Morning (6am-12pm)",
-      "Afternoon (12pm-5pm)",
-      "Evening (5pm-10pm)",
-      "Flexible schedule",
+      { text: "Morning (6am-12pm)", value: "morning" },
+      { text: "Afternoon (12pm-5pm)", value: "afternoon" },
+      { text: "Evening (5pm-10pm)", value: "evening" },
+      { text: "Flexible schedule", value: "flexible" },
     ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 13,
     question: "What equipment do you have access to?",
     options: [
-      "Full gym access",
-      "Basic home equipment",
-      "No equipment",
-      "Limited equipment",
+      { text: "Full gym access", value: "full_gym" },
+      { text: "Basic home equipment", value: "home_basic" },
+      { text: "No equipment", value: "none" },
+      { text: "Limited equipment", value: "limited" },
     ],
+    layout: "vertical",
+    size: "large",
   },
   {
     id: 14,
     question: "How long can you dedicate to each workout session?",
     options: [
-      "30 minutes or less",
-      "30-45 minutes",
-      "45-60 minutes",
-      "60+ minutes",
+      { text: "30 minutes or less", value: "under_30" },
+      { text: "30-45 minutes", value: "30-45" },
+      { text: "45-60 minutes", value: "45-60" },
+      { text: "60+ minutes", value: "over_60" },
     ],
+    layout: "vertical",
+    size: "large",
   },
 ];
-
-const generateWorkoutPlan = (answers) => {
-  const plan = {
-    focus: [],
-    frequency: "",
-    duration: "",
-    intensity: "",
-    recommendations: [],
-  };
-
-  // Determine primary focus based on goals and preferences
-  if (answers[0].includes("Build muscle")) {
-    plan.focus.push("Strength Training");
-  }
-  if (answers[0].includes("Lose weight")) {
-    plan.focus.push("Cardio");
-  }
-  if (answers[0].includes("Improve overall")) {
-    plan.focus.push("Full Body");
-  }
-  if (answers[0].includes("flexibility")) {
-    plan.focus.push("Flexibility");
-  }
-
-  // Set workout frequency
-  plan.frequency = answers[2];
-
-  // Set workout duration
-  plan.duration = answers[9];
-
-  // Set intensity based on fitness level
-  const fitnessLevel = answers[1];
-  plan.intensity = fitnessLevel.includes("Beginner")
-    ? "Low"
-    : fitnessLevel.includes("Intermediate")
-    ? "Moderate"
-    : fitnessLevel.includes("Advanced")
-    ? "High"
-    : "Very High";
-
-  // Add specific recommendations
-  if (answers[3].includes("weights")) {
-    plan.recommendations.push("Focus on compound movements");
-  }
-  if (answers[3].includes("bodyweight")) {
-    plan.recommendations.push("Include bodyweight progressions");
-  }
-  if (answers[3].includes("Cardio")) {
-    plan.recommendations.push("Incorporate HIIT training");
-  }
-
-  // Add health considerations
-  if (answers[4].includes("Joint issues")) {
-    plan.recommendations.push("Low-impact exercises recommended");
-  }
-  if (answers[4].includes("Back problems")) {
-    plan.recommendations.push("Focus on core strengthening");
-  }
-
-  return plan;
-};
-
-const ResultsContainer = styled(motion.div)`
-  padding: 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-`;
-
-const PlanSection = styled.div`
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border-left: 4px solid ${theme.primary};
-  background: #f8f9fa;
-`;
-
-const Recommendation = styled.li`
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-`;
 
 const calculateBMI = (height, weight, unit) => {
   if (!height || !weight) return null;
@@ -465,6 +413,191 @@ const getBMICategory = (bmi) => {
   return { category: "Obese", color: "#F44336" };
 };
 
+const SummaryContainer = styled(motion.div)`
+  padding: 2rem;
+  background: ${theme.background};
+  color: ${theme.text};
+  border-radius: 12px;
+`;
+
+const SummaryTitle = styled.h2`
+  color: ${theme.text};
+  text-align: center;
+  margin-bottom: 2rem;
+`;
+
+const SummaryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+
+const SummaryCard = styled.div`
+  background: ${theme.cardBackground};
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid ${theme.border};
+`;
+
+const SummaryIcon = styled.div`
+  color: ${theme.accent};
+  font-size: 1.8rem;
+`;
+
+const SummaryDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const SummaryLabel = styled.span`
+  font-size: 0.9rem;
+  color: #aaa;
+`;
+
+const SummaryValue = styled.span`
+  font-size: 1.1rem;
+  font-weight: 600;
+`;
+
+const GoalsSection = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const GoalsTitle = styled.h3`
+  margin-bottom: 1rem;
+  color: ${theme.text};
+`;
+
+const GoalsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+`;
+
+const GoalItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: ${theme.text};
+`;
+
+const GoalIcon = styled(FiCheckCircle)`
+  color: ${theme.accent};
+`;
+
+const GetPlanButton = styled(motion.button)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: ${theme.accent};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 2rem auto 0;
+  width: fit-content;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const QuizSummary = ({ answers, questions, measurementValues }) => {
+  const getAnswer = (questionId) => {
+    const questionIndex = questions.findIndex((q) => q.id === questionId);
+    if (questionIndex === -1 || !answers[questionIndex]) return "N/A";
+
+    const answer = answers[questionIndex];
+    return typeof answer === "object" ? answer.text || answer.value : answer;
+  };
+
+  const mockGoals = [
+    "Reduce stress",
+    "Feel healthier",
+    "Self-discipline",
+    "Form a physical habit",
+    "Improve sleep",
+  ];
+
+  return (
+    <SummaryContainer
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <SummaryTitle>Personalized plan for you is ready!</SummaryTitle>
+
+      <SummaryGrid>
+        <SummaryCard>
+          <SummaryIcon>
+            <FiClock />
+          </SummaryIcon>
+          <SummaryDetails>
+            <SummaryLabel>Workout Duration</SummaryLabel>
+            <SummaryValue>{getAnswer(14)}</SummaryValue>
+          </SummaryDetails>
+        </SummaryCard>
+        <SummaryCard>
+          <SummaryIcon>
+            <FiZap />
+          </SummaryIcon>
+          <SummaryDetails>
+            <SummaryLabel>Fitness Level</SummaryLabel>
+            <SummaryValue>{getAnswer(7)}</SummaryValue>
+          </SummaryDetails>
+        </SummaryCard>
+        <SummaryCard>
+          <SummaryIcon>
+            <FiMapPin />
+          </SummaryIcon>
+          <SummaryDetails>
+            <SummaryLabel>Place to Workout</SummaryLabel>
+            <SummaryValue>{getAnswer(13)}</SummaryValue>
+          </SummaryDetails>
+        </SummaryCard>
+        <SummaryCard>
+          <SummaryIcon>
+            <FiCalendar />
+          </SummaryIcon>
+          <SummaryDetails>
+            <SummaryLabel>Workout Frequency</SummaryLabel>
+            <SummaryValue>{getAnswer(8)}</SummaryValue>
+          </SummaryDetails>
+        </SummaryCard>
+      </SummaryGrid>
+
+      <GoalsSection>
+        <GoalsTitle>Goals for your program also include:</GoalsTitle>
+        <GoalsList>
+          {mockGoals.map((goal, index) => (
+            <GoalItem key={index}>
+              <GoalIcon /> {goal}
+            </GoalItem>
+          ))}
+        </GoalsList>
+      </GoalsSection>
+
+      <GetPlanButton
+        onClick={() => alert("Plan generation coming soon!")}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Get my plan <FiArrowRight />
+      </GetPlanButton>
+    </SummaryContainer>
+  );
+};
+
 const FitMeQuiz = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -481,15 +614,18 @@ const FitMeQuiz = () => {
   const handleAnswer = (option) => {
     const newAnswers = {
       ...answers,
-      [currentQuestion]: option,
+      [currentQuestion]:
+        typeof option === "string"
+          ? { text: option, value: option.toLowerCase().replace(/ /g, "_") }
+          : option,
     };
     setAnswers(newAnswers);
 
     setDirection(1);
-    if (currentQuestion < questions.length - 1) {
-      setTimeout(() => setCurrentQuestion(currentQuestion + 1), 500);
+    if (currentQuestion === questions.length - 1) {
+      setTimeout(() => setShowResults(true), 300);
     } else {
-      setTimeout(() => setShowResults(true), 500);
+      setCurrentQuestion(currentQuestion + 1);
     }
   };
 
@@ -501,83 +637,67 @@ const FitMeQuiz = () => {
   };
 
   const handleNext = () => {
-    // If we're on the weight question (id: 4), calculate BMI
     if (currentQuestion === 3) {
       const height = parseFloat(measurementValues.height.value);
       const weight = parseFloat(measurementValues.weight.value);
-      if (height && weight) {
-        const calculatedBMI = calculateBMI(
-          height,
-          weight,
-          measurementValues.height.unit === "cm" ? "metric" : "imperial"
-        );
+      const heightInCm =
+        measurementValues.height.unit === "ft" ? height * 30.48 : height;
+      const weightInKg =
+        measurementValues.weight.unit === "lbs" ? weight * 0.453592 : weight;
+
+      if (heightInCm && weightInKg) {
+        const calculatedBMI = calculateBMI(heightInCm, weightInKg, "metric");
         setBMI(calculatedBMI);
         setBMICategory(getBMICategory(calculatedBMI));
         setShowBMI(true);
         return;
       }
     }
-
     setShowBMI(false);
-    setCurrentQuestion((prev) => prev + 1);
+    if (currentQuestion === questions.length - 1) {
+      setTimeout(() => setShowResults(true), 300);
+    } else {
+      setCurrentQuestion((prev) => prev + 1);
+    }
   };
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const handleContinueFromBMI = () => {
+    setShowBMI(false);
+    if (currentQuestion === questions.length - 1) {
+      setShowResults(true);
+    } else {
+      setCurrentQuestion((prev) => prev + 1);
+    }
+  };
+
+  const progress = showResults
+    ? 100
+    : ((currentQuestion + 1) / questions.length) * 100;
 
   if (showResults) {
-    const workoutPlan = generateWorkoutPlan(Object.values(answers));
-
     return (
-      <ResultsContainer
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h2>Your Personalized Workout Plan</h2>
-
-        <PlanSection>
-          <h3>Primary Focus</h3>
-          <p>{workoutPlan.focus.join(", ")}</p>
-        </PlanSection>
-
-        <PlanSection>
-          <h3>Workout Schedule</h3>
-          <p>Frequency: {workoutPlan.frequency}</p>
-          <p>Duration: {workoutPlan.duration}</p>
-          <p>Intensity: {workoutPlan.intensity}</p>
-        </PlanSection>
-
-        <PlanSection>
-          <h3>Recommendations</h3>
-          <ul>
-            {workoutPlan.recommendations.map((rec, index) => (
-              <Recommendation key={index}>{rec}</Recommendation>
-            ))}
-          </ul>
-        </PlanSection>
-
-        <SubmitButton
-          onClick={() => setShowResults(false)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Start New Quiz
-        </SubmitButton>
-      </ResultsContainer>
+      <QuizSummary
+        answers={answers}
+        questions={questions}
+        measurementValues={measurementValues}
+      />
     );
   }
 
   return (
     <QuizContainer>
       <ProgressText>
-        Question {currentQuestion + 1} of {questions.length}
+        {!showBMI
+          ? `Question ${currentQuestion + 1} of ${questions.length}`
+          : "BMI Result"}
       </ProgressText>
       <ProgressBar progress={progress} />
 
-      {currentQuestion > 0 && (
+      {currentQuestion > 0 && !showBMI && (
         <BackButton
           onClick={() => {
             setShowBMI(false);
+            setDirection(-1);
             setCurrentQuestion((prev) => prev - 1);
           }}
           whileHover={{ scale: 1.1 }}
@@ -593,21 +713,19 @@ const FitMeQuiz = () => {
             key="bmi"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.3 }}
           >
             <BMIText>Your BMI: {bmi}</BMIText>
             <BMIText>
               Category:{" "}
-              <BMICategory category={bmiCategory.category}>
-                {bmiCategory.category}
+              <BMICategory category={bmiCategory?.category}>
+                {bmiCategory?.category || "N/A"}
               </BMICategory>
             </BMIText>
             <ButtonContainer>
               <NextButton
-                onClick={() => {
-                  setShowBMI(false);
-                  setCurrentQuestion((prev) => prev + 1);
-                }}
+                onClick={handleContinueFromBMI}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -621,7 +739,7 @@ const FitMeQuiz = () => {
             initial={{ opacity: 0, x: direction * 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -direction * 100 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.3 }}
           >
             <Question>{questions[currentQuestion].question}</Question>
 
@@ -645,8 +763,24 @@ const FitMeQuiz = () => {
                       ].unit
                     )
                   }
-                  min={questions[currentQuestion].id === 3 ? "100" : "30"}
-                  max={questions[currentQuestion].id === 3 ? "250" : "200"}
+                  min={
+                    questions[currentQuestion].id === 3
+                      ? measurementValues.height.unit === "cm"
+                        ? 100
+                        : 3
+                      : measurementValues.weight.unit === "kg"
+                      ? 30
+                      : 66
+                  }
+                  max={
+                    questions[currentQuestion].id === 3
+                      ? measurementValues.height.unit === "cm"
+                        ? 250
+                        : 8
+                      : measurementValues.weight.unit === "kg"
+                      ? 200
+                      : 440
+                  }
                   placeholder={`Enter ${
                     questions[currentQuestion].id === 3 ? "height" : "weight"
                   }`}
@@ -693,22 +827,26 @@ const FitMeQuiz = () => {
                 </ButtonContainer>
               </MeasurementContainer>
             ) : (
-              <OptionsContainer layout={questions[currentQuestion].layout}>
+              <OptionsContainer
+                layout={questions[currentQuestion].layout || "grid"}
+              >
                 {questions[currentQuestion].options.map((option, index) => (
                   <Option
                     key={index}
-                    size={questions[currentQuestion].size}
+                    size={questions[currentQuestion].size || "medium"}
                     className={
-                      answers[currentQuestion] === option ? "selected" : ""
+                      answers[currentQuestion]?.value === option.value
+                        ? "selected"
+                        : ""
                     }
                     onClick={() => handleAnswer(option)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {option.text}
                     {option.image && (
                       <OptionImage src={option.image} alt={option.text} />
                     )}
+                    <OptionText>{option.text}</OptionText>
                   </Option>
                 ))}
               </OptionsContainer>

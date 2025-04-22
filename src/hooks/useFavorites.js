@@ -1,41 +1,32 @@
 import { useState, useEffect } from "react";
 
-const FAVORITES_KEY = "fitme_favorite_workouts";
-
-export const useFavorites = () => {
+const useFavorites = () => {
   const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem(FAVORITES_KEY);
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
+    const saved = localStorage.getItem('fitme_favorite_workouts');
+    return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    localStorage.setItem('fitme_favorite_workouts', JSON.stringify(favorites));
   }, [favorites]);
 
-  const addFavorite = (workout) => {
-    setFavorites((prev) => {
-      if (prev.some((fav) => fav.name === workout.name)) {
-        return prev;
-      }
-      return [...prev, workout];
-    });
+  const addFavorite = (exercise) => {
+    setFavorites((prev) => [...prev, exercise]);
   };
 
-  const removeFavorite = (workoutName) => {
-    setFavorites((prev) =>
-      prev.filter((workout) => workout.name !== workoutName)
-    );
+  const removeFavorite = (exercise) => {
+    setFavorites((prev) => prev.filter((fav) => fav.name !== exercise.name));
   };
 
-  const isFavorite = (workoutName) => {
-    return favorites.some((workout) => workout.name === workoutName);
+  const isFavorite = (exercise) => {
+    return favorites.some((fav) => fav.name === exercise.name);
   };
 
-  const toggleFavorite = (workout) => {
-    if (isFavorite(workout.name)) {
-      removeFavorite(workout.name);
+  const toggleFavorite = (exercise) => {
+    if (isFavorite(exercise)) {
+      removeFavorite(exercise);
     } else {
-      addFavorite(workout);
+      addFavorite(exercise);
     }
   };
 
@@ -47,3 +38,5 @@ export const useFavorites = () => {
     toggleFavorite,
   };
 };
+
+export default useFavorites;

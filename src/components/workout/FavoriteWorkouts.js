@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import { useFavorites } from "../../hooks/useFavorites";
+import useFavorites from "../../hooks/useFavorites";
 import ExerciseCard from "./ExerciseCard";
 
 const Container = styled.div`
