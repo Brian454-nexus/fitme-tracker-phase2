@@ -1,1 +1,1 @@
-import React from "react"; import "./Meals.css"; const Meals = () => { return ( <div className="meals-container"> <h2>Meal Tracker</h2> </div> ); }; export default Meals;
+import React, { useState } from "react"; import MealForm from "./components/MealForm"; import MealList from "./components/MealList"; import "./Meals.css"; const Meals = () => { const [meals, setMeals] = useState([]); return ( <div className="meals-container"> <h2>Meal Tracker</h2> <MealForm /> <MealList meals={meals} /> </div> ); }; export default Meals;
