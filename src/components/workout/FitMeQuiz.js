@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,16 +9,17 @@ const theme = {
   background: "#121212",
   text: "#FFFFFF",
   cardBackground: "#1E1E1E",
+  border: "#333333",
 };
 
 const QuizContainer = styled.div`
   max-width: 800px;
-  margin: 2rem auto;
+  margin: 0 auto;
   padding: 2rem;
   background: ${theme.cardBackground};
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  position: relative;
+  border-radius: 12px;
+  border: 2px solid ${theme.border};
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const ProgressBar = styled.div`
@@ -113,13 +114,102 @@ const BackButton = styled(motion.button)`
   }
 `;
 
+const MeasurementContainer = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+`;
+
+const MeasurementInput = styled.input`
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid ${theme.border};
+  border-radius: 4px;
+  background: ${theme.cardBackground};
+  color: ${theme.text};
+`;
+
+const MeasurementSelect = styled.select`
+  padding: 0.5rem;
+  border: 1px solid ${theme.border};
+  border-radius: 4px;
+  background: ${theme.cardBackground};
+  color: ${theme.text};
+`;
+
+const BMIDisplay = styled(motion.div)`
+  margin-top: 1rem;
+  padding: 1rem;
+  background: ${theme.cardBackground};
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid ${theme.border};
+`;
+
+const BMIText = styled.p`
+  color: ${theme.text};
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+`;
+
+const BMICategory = styled.span`
+  color: ${(props) => {
+    switch (props.category) {
+      case "Underweight":
+        return "#FFA500";
+      case "Normal weight":
+        return "#4CAF50";
+      case "Overweight":
+        return "#FFC107";
+      case "Obese":
+        return "#F44336";
+      default:
+        return theme.text;
+    }
+  }};
+  font-weight: bold;
+`;
+
+const NextButton = styled(motion.button)`
+  padding: 0.5rem 1rem;
+  background: ${theme.accent};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  font-weight: 600;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const SubmitButton = styled(motion.button)`
+  padding: 1rem 2rem;
+  background: ${theme.accent};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  width: 100%;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
 const questions = [
   {
     id: 1,
     question: "What is your gender?",
     options: [
-      { text: "Male", image: "/images/gender/male.png" },
-      { text: "Female", image: "/images/gender/female.png" },
+      { text: "Male", value: "male" },
+      { text: "Female", value: "female" },
+      { text: "Other", value: "other" },
     ],
     layout: "vertical",
     size: "large",
@@ -128,10 +218,11 @@ const questions = [
     id: 2,
     question: "What is your age group?",
     options: [
-      { text: "18-29", image: "/images/age/young.png" },
-      { text: "30-39", image: "/images/age/adult.png" },
-      { text: "40-49", image: "/images/age/middle.png" },
-      { text: "50+", image: "/images/age/senior.png" },
+      { text: "18-25", value: "18-25" },
+      { text: "26-35", value: "26-35" },
+      { text: "36-45", value: "36-45" },
+      { text: "46-55", value: "46-55" },
+      { text: "56+", value: "56+" },
     ],
     layout: "grid",
     size: "medium",
@@ -141,22 +232,12 @@ const questions = [
     question: "What is your height?",
     type: "measurement",
     unit: ["cm", "ft"],
-    options: Array.from({ length: 100 }, (_, i) => ({
-      text: `${i + 140} cm`,
-      value: i + 140,
-    })),
-    layout: "scroll",
   },
   {
     id: 4,
     question: "What is your weight?",
     type: "measurement",
     unit: ["kg", "lbs"],
-    options: Array.from({ length: 100 }, (_, i) => ({
-      text: `${i + 40} kg`,
-      value: i + 40,
-    })),
-    layout: "scroll",
   },
   {
     id: 5,
@@ -340,17 +421,77 @@ const Recommendation = styled.li`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 `;
 
+const calculateBMI = (height, weight, unit) => {
+  if (!height || !weight) return null;
+
+  let heightInMeters = unit === "metric" ? height / 100 : height * 0.3048;
+  let weightInKg = unit === "metric" ? weight : weight * 0.453592;
+
+  const bmi = weightInKg / (heightInMeters * heightInMeters);
+  return bmi.toFixed(1);
+};
+
+const getBMICategory = (bmi) => {
+  if (!bmi) return null;
+
+  if (bmi < 18.5) return { category: "Underweight", color: "#FFA500" };
+  if (bmi < 25) return { category: "Normal weight", color: "#4CAF50" };
+  if (bmi < 30) return { category: "Overweight", color: "#FFC107" };
+  return { category: "Obese", color: "#F44336" };
+};
+
 const FitMeQuiz = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [direction, setDirection] = useState(1);
+  const [bmi, setBMI] = useState(null);
+  const [bmiCategory, setBMICategory] = useState(null);
+  const [showBMI, setShowBMI] = useState(false);
+  const [measurementValues, setMeasurementValues] = useState({
+    height: { value: "", unit: "cm" },
+    weight: { value: "", unit: "kg" },
+  });
 
   const handleAnswer = (option) => {
-    setAnswers({
+    const newAnswers = {
       ...answers,
       [currentQuestion]: option,
-    });
+    };
+    setAnswers(newAnswers);
+
+    if (currentQuestion === 2) {
+      // Height question
+      const height = parseFloat(measurementValues.height.value);
+      const weight = parseFloat(measurementValues.weight.value);
+      if (height && weight) {
+        const calculatedBMI = calculateBMI(
+          height,
+          weight,
+          measurementValues.height.unit === "cm" ? "metric" : "imperial"
+        );
+        setBMI(calculatedBMI);
+        setBMICategory(getBMICategory(calculatedBMI));
+        setShowBMI(true);
+        return;
+      }
+    } else if (currentQuestion === 3) {
+      // Weight question
+      const weight = parseFloat(measurementValues.weight.value);
+      const height = parseFloat(measurementValues.height.value);
+      if (height && weight) {
+        const calculatedBMI = calculateBMI(
+          height,
+          weight,
+          measurementValues.height.unit === "cm" ? "metric" : "imperial"
+        );
+        setBMI(calculatedBMI);
+        setBMICategory(getBMICategory(calculatedBMI));
+        setShowBMI(true);
+        return;
+      }
+    }
+
     setDirection(1);
     if (currentQuestion < questions.length - 1) {
       setTimeout(() => setCurrentQuestion(currentQuestion + 1), 500);
@@ -359,9 +500,16 @@ const FitMeQuiz = () => {
     }
   };
 
-  const handleBack = () => {
-    setDirection(-1);
-    setTimeout(() => setCurrentQuestion(currentQuestion - 1), 500);
+  const handleMeasurementChange = (type, value, unit) => {
+    setMeasurementValues((prev) => ({
+      ...prev,
+      [type]: { value, unit },
+    }));
+  };
+
+  const handleNext = () => {
+    setShowBMI(false);
+    setCurrentQuestion((prev) => prev + 1);
   };
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
@@ -416,9 +564,9 @@ const FitMeQuiz = () => {
       </ProgressText>
       <ProgressBar progress={progress} />
 
-      {currentQuestion > 0 && (
+      {currentQuestion > 0 && !showBMI && (
         <BackButton
-          onClick={handleBack}
+          onClick={() => setCurrentQuestion((prev) => prev - 1)}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -427,34 +575,110 @@ const FitMeQuiz = () => {
       )}
 
       <AnimatePresence mode="wait">
-        <QuestionContainer
-          key={currentQuestion}
-          initial={{ opacity: 0, x: direction * 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -direction * 100 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Question>{questions[currentQuestion].question}</Question>
-          <OptionsContainer layout={questions[currentQuestion].layout}>
-            {questions[currentQuestion].options.map((option, index) => (
-              <Option
-                key={index}
-                size={questions[currentQuestion].size}
-                className={
-                  answers[currentQuestion] === option ? "selected" : ""
-                }
-                onClick={() => handleAnswer(option)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {option.text}
-                {option.image && (
-                  <OptionImage src={option.image} alt={option.text} />
-                )}
-              </Option>
-            ))}
-          </OptionsContainer>
-        </QuestionContainer>
+        {showBMI ? (
+          <BMIDisplay
+            key="bmi"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <BMIText>Your BMI: {bmi}</BMIText>
+            <BMIText>
+              Category:{" "}
+              <BMICategory color={bmiCategory.color}>
+                {bmiCategory.category}
+              </BMICategory>
+            </BMIText>
+            <NextButton
+              onClick={handleNext}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Continue
+            </NextButton>
+          </BMIDisplay>
+        ) : (
+          <QuestionContainer
+            key={currentQuestion}
+            initial={{ opacity: 0, x: direction * 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -direction * 100 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Question>{questions[currentQuestion].question}</Question>
+
+            {questions[currentQuestion].type === "measurement" ? (
+              <MeasurementContainer>
+                <MeasurementInput
+                  type="number"
+                  value={
+                    measurementValues[
+                      questions[currentQuestion].id === 3 ? "height" : "weight"
+                    ].value
+                  }
+                  onChange={(e) =>
+                    handleMeasurementChange(
+                      questions[currentQuestion].id === 3 ? "height" : "weight",
+                      e.target.value,
+                      measurementValues[
+                        questions[currentQuestion].id === 3
+                          ? "height"
+                          : "weight"
+                      ].unit
+                    )
+                  }
+                  placeholder={`Enter ${
+                    questions[currentQuestion].id === 3 ? "height" : "weight"
+                  }`}
+                />
+                <MeasurementSelect
+                  value={
+                    measurementValues[
+                      questions[currentQuestion].id === 3 ? "height" : "weight"
+                    ].unit
+                  }
+                  onChange={(e) =>
+                    handleMeasurementChange(
+                      questions[currentQuestion].id === 3 ? "height" : "weight",
+                      measurementValues[
+                        questions[currentQuestion].id === 3
+                          ? "height"
+                          : "weight"
+                      ].value,
+                      e.target.value
+                    )
+                  }
+                >
+                  {questions[currentQuestion].unit.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </MeasurementSelect>
+              </MeasurementContainer>
+            ) : (
+              <OptionsContainer layout={questions[currentQuestion].layout}>
+                {questions[currentQuestion].options.map((option, index) => (
+                  <Option
+                    key={index}
+                    size={questions[currentQuestion].size}
+                    className={
+                      answers[currentQuestion] === option ? "selected" : ""
+                    }
+                    onClick={() => handleAnswer(option)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {option.text}
+                    {option.image && (
+                      <OptionImage src={option.image} alt={option.text} />
+                    )}
+                  </Option>
+                ))}
+              </OptionsContainer>
+            )}
+          </QuestionContainer>
+        )}
       </AnimatePresence>
     </QuizContainer>
   );
