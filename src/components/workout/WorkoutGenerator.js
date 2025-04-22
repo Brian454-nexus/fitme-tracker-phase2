@@ -242,7 +242,10 @@ const WorkoutGenerator = () => {
                 >
                   <MuscleTitle>{muscle.name}</MuscleTitle>
                   <ModelContainer>
-                    <ImageViewer muscle={muscle.value} image={muscle.image} />
+                    <ImageViewer
+                      imageUrl={muscle.image}
+                      alt={`${muscle.name} muscle group`}
+                    />
                   </ModelContainer>
                 </MuscleCard>
               ))}
