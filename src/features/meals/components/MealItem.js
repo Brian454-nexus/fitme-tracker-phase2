@@ -1,1 +1,1 @@
-import React from "react"; const MealItem = ({ meal }) => { return ( <div className="meal-item"> <h4>{meal.name}</h4> <p>{meal.calories} calories</p> </div> ); }; export default MealItem;
+import React from "react"; const MealItem = ({ meal, onDelete }) => { return ( <div className="meal-item"> <h4>{meal.name}</h4> <p>{meal.calories} calories</p> <button onClick={() => onDelete(meal.id)}>Delete</button> </div> ); }; export default MealItem;
