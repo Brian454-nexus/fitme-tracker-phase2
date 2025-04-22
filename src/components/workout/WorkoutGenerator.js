@@ -12,9 +12,9 @@ import ThemeToggle from "../ThemeToggle";
 import { useTheme } from "../../context/ThemeContext";
 
 const lightTheme = {
-  primary: "#FF0000",
+  primary: "#FF4500",
   secondary: "#000000",
-  accent: "#000080",
+  accent: "#FF4500",
   background: "#FFFFFF",
   text: "#333333",
   cardBackground: "#F8F9FA",
@@ -22,9 +22,9 @@ const lightTheme = {
 };
 
 const darkTheme = {
-  primary: "#FF0000",
+  primary: "#FF4500",
   secondary: "#FFFFFF",
-  accent: "#000080",
+  accent: "#FF4500",
   background: "#121212",
   text: "#FFFFFF",
   cardBackground: "#1E1E1E",
