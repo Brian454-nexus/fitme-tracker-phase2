@@ -89,6 +89,16 @@ const ModelContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  background: ${(props) => props.theme.cardBackground};
+  border-radius: 8px;
+  overflow: hidden;
+`;
+
+const PlaceholderText = styled.div`
+  color: ${(props) => props.theme.text};
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem;
 `;
 
 const WorkoutList = styled.div`
@@ -153,16 +163,29 @@ const ProgressBar = styled(motion.div)`
 
 const muscleGroups = [
   { name: "Chest", value: "chest", image: "/images/muscles/chest.png" },
-  { name: "Back", value: "back", image: "/images/muscles/back.png" },
+  { name: "Back", value: "back", image: "/images/muscles/back.jpeg" },
   { name: "Legs", value: "legs", image: "/images/muscles/legs.png" },
-  {
-    name: "Shoulders",
-    value: "shoulders",
-    image: "/images/muscles/shoulders.png",
-  },
-  { name: "Arms", value: "arms", image: "/images/muscles/arms.png" },
-  { name: "Abs", value: "abs", image: "/images/muscles/abs.png" },
+  { name: "Shoulders", value: "shoulders", image: "/images/muscles/core.png" },
+  { name: "Arms", value: "arms", image: "/images/muscles/arms.jpeg" },
+  { name: "Abs", value: "abs", image: "/images/muscles/core.png" },
 ];
+
+const ImageViewer = ({ muscle, image }) => {
+  const [error, setError] = useState(false);
+
+  if (error) {
+    return <PlaceholderText>Image not available</PlaceholderText>;
+  }
+
+  return (
+    <img
+      src={image}
+      alt={`${muscle} muscle`}
+      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      onError={() => setError(true)}
+    />
+  );
+};
 
 const WorkoutGenerator = () => {
   const [selectedMuscle, setSelectedMuscle] = useState(null);
