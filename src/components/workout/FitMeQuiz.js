@@ -204,32 +204,38 @@ const SubmitButton = styled(motion.button)`
 
 const HeightWeightContainer = styled.div`
   display: flex;
+  flex-direction: column;
   gap: 2rem;
   margin-bottom: 2rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
 `;
 
 const HeightWeightSection = styled.div`
-  flex: 1;
+  width: 100%;
 `;
 
 const HeightWeightTitle = styled.h3`
-  color: ${(props) => props.theme.text};
+  color: ${theme.text};
   margin-bottom: 1rem;
   font-size: 1.2rem;
+  text-align: center;
 `;
 
 const HeightWeightInput = styled.input`
   width: 100%;
   padding: 1rem;
-  border: 2px solid ${(props) => props.theme.border};
+  border: 2px solid ${theme.border};
   border-radius: 8px;
   font-size: 1.1rem;
-  background: ${(props) => props.theme.cardBackground};
-  color: ${(props) => props.theme.text};
+  background: ${theme.cardBackground};
+  color: ${theme.text};
+  text-align: center;
 
   &:focus {
     outline: none;
-    border-color: ${(props) => props.theme.accent};
+    border-color: ${theme.accent};
   }
 `;
 
