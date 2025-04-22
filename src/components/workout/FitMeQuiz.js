@@ -114,29 +114,6 @@ const BackButton = styled(motion.button)`
   }
 `;
 
-const MeasurementContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
-`;
-
-const MeasurementInput = styled.input`
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid ${theme.border};
-  border-radius: 4px;
-  background: ${theme.cardBackground};
-  color: ${theme.text};
-`;
-
-const MeasurementSelect = styled.select`
-  padding: 0.5rem;
-  border: 1px solid ${theme.border};
-  border-radius: 4px;
-  background: ${theme.cardBackground};
-  color: ${theme.text};
-`;
-
 const BMIDisplay = styled(motion.div)`
   margin-top: 1rem;
   padding: 1rem;
