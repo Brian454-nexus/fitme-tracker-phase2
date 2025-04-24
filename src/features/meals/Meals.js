@@ -577,11 +577,11 @@ const Meals = () => {
           <SearchBarContainer>
             <FaSearch />
             <SearchInput
-              type="text"
+          type="text"
               placeholder="Search recipes by name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
           </SearchBarContainer>
           <FilterContainer>
             <label htmlFor="categoryFilter">

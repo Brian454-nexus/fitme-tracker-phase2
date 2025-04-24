@@ -10,6 +10,7 @@ import ImageViewer from "./ImageViewer";
 import FitMeQuiz from "./FitMeQuiz";
 import ThemeToggle from "../ThemeToggle";
 import { useTheme } from "../../context/ThemeContext";
+import MotivationalQuote from "../quotes/MotivationalQuote";
 
 const lightTheme = {
   primary: "#FF4500",
@@ -158,9 +159,8 @@ const muscleGroups = [
   { name: "Chest", value: "chest", image: "/images/muscles/chest.png" },
   { name: "Back", value: "back", image: "/images/muscles/back.jpeg" },
   { name: "Legs", value: "legs", image: "/images/muscles/legs.png" },
-  { name: "Shoulders", value: "shoulders", image: "/images/muscles/core.png" },
-  { name: "Arms", value: "arms", image: "/images/muscles/arms.jpeg" },
   { name: "Abs", value: "abs", image: "/images/muscles/core.png" },
+  { name: "Arms", value: "arms", image: "/images/muscles/arms.jpeg" },
 ];
 
 const WorkoutGenerator = () => {
@@ -212,8 +212,10 @@ const WorkoutGenerator = () => {
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <Container>
-        <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+        <ThemeToggle toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
         <Title>Workout Generator</Title>
+
+        <MotivationalQuote />
 
         <ButtonContainer>
           <QuizButton
