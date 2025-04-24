@@ -30,6 +30,10 @@ const Meals = () => {
 
   const today = new Date().toISOString().split("T")[0];
   const todayMeals = meals.filter((meal) => meal.date === today);
+  const totalCaloriesToday = todayMeals.reduce(
+    (sum, meal) => sum + parseInt(meal.calories || 0),
+    0
+  );
   const totalProteinToday = todayMeals.reduce(
     (sum, meal) => sum + parseInt(meal.protein || 0),
     0
