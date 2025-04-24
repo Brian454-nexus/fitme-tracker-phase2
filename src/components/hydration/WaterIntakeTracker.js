@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
 import {
   FaPlus,
   FaTrashAlt,
   FaHistory,
   FaCalendarAlt,
   FaBullseye,
-  FaClock,
-} from 'react-icons/fa';
+  FaGlassWhiskey,
+  FaHashtag,
+} from "react-icons/fa";
 
 const CUP_VOLUME = 250;
 
@@ -143,16 +144,16 @@ const ButtonGroup = styled.div`
 
 const Button = styled(motion.button)`
   background: ${(props) =>
-    props.variant === 'danger'
-      ? '#ff4444'
-      : props.variant === 'secondary'
+    props.variant === "danger"
+      ? "#ff4444"
+      : props.variant === "secondary"
       ? props.theme.cardBackground
       : props.theme.accent};
   color: ${(props) =>
-    props.variant === 'secondary' ? props.theme.text : 'white'};
+    props.variant === "secondary" ? props.theme.text : "white"};
   padding: 1rem 2rem;
   border: ${(props) =>
-    props.variant === 'secondary' ? `2px solid ${props.theme.border}` : 'none'};
+    props.variant === "secondary" ? `2px solid ${props.theme.border}` : "none"};
   border-radius: 0.8rem;
   font-size: 1rem;
   font-weight: 600;
@@ -161,12 +162,12 @@ const Button = styled(motion.button)`
   align-items: center;
   gap: 0.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  opacity: ${props => props.disabled ? 0.5 : 1};
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
 
   &:hover {
-    opacity: ${props => props.disabled ? 0.5 : 0.9};
-    transform: ${props => props.disabled ? 'none' : 'translateY(-1px)'};
+    opacity: ${(props) => (props.disabled ? 0.5 : 0.9)};
+    transform: ${(props) => (props.disabled ? "none" : "translateY(-1px)")};
   }
 `;
 
@@ -219,7 +220,40 @@ const Input = styled.input`
   }
 `;
 
-const LogSection = styled(motion.div)`
+const CounterContainer = styled.div`
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: ${(props) => props.theme.background};
+  border-radius: 1rem;
+`;
+
+const CounterItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+`;
+
+const CounterValue = styled(motion.span)`
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: ${(props) => props.theme.accent};
+  margin-bottom: 0.25rem;
+`;
+
+const CounterLabel = styled.span`
+  font-size: 0.9rem;
+  color: ${(props) => props.theme.text};
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+`;
+
+const HistoryDisplaySection = styled(motion.div)`
   background: ${(props) => props.theme.cardBackground};
   border-radius: 1.5rem;
   padding: 2rem;
@@ -227,20 +261,20 @@ const LogSection = styled(motion.div)`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
-const LogHeader = styled.div`
+const HistoryHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
 `;
 
-const LogTitle = styled.h3`
+const HistoryTitle = styled.h3`
   color: ${(props) => props.theme.text};
   font-size: 1.5rem;
   font-weight: 600;
 `;
 
-const LogList = styled.div`
+const HistoryList = styled.div`
   max-height: 300px;
   overflow-y: auto;
   display: flex;
@@ -249,7 +283,7 @@ const LogList = styled.div`
   padding-right: 0.5rem; /* For scrollbar */
 `;
 
-const LogItem = styled(motion.div)`
+const HistoryItem = styled(motion.div)`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -258,21 +292,18 @@ const LogItem = styled(motion.div)`
   border-radius: 0.8rem;
 `;
 
-const LogTime = styled.span`
+const HistoryDate = styled.span`
   color: ${(props) => props.theme.text};
   font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 `;
 
-const LogAmount = styled.span`
+const HistoryAmount = styled.span`
   color: ${(props) => props.theme.accent};
   font-weight: 600;
   font-size: 0.9rem;
 `;
 
-const EmptyLogText = styled.p`
+const EmptyHistoryText = styled.p`
   color: ${(props) => props.theme.text};
   opacity: 0.6;
   text-align: center;
@@ -283,11 +314,18 @@ const CircularProgressBar = ({ percentage, size = 200, strokeWidth = 12 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   // Ensure offset calculation doesn't result in NaN or negative values
-  const validPercentage = Math.max(0, Math.min(100, percentage));
+  const validPercentage = Math.max(
+    0,
+    Math.min(100, isNaN(percentage) ? 0 : percentage)
+  );
   const offset = circumference - (validPercentage / 100) * circumference;
 
   return (
-    <SvgCircularProgress width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <SvgCircularProgress
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+    >
       <CircleBg
         strokeWidth={strokeWidth}
         cx={size / 2}
@@ -300,7 +338,8 @@ const CircularProgressBar = ({ percentage, size = 200, strokeWidth = 12 }) => {
         cy={size / 2}
         r={radius}
         strokeDasharray={circumference}
-        strokeDashoffset={offset}
+        // Apply offset directly, ensure transition handles the change
+        style={{ strokeDashoffset: offset }}
       />
     </SvgCircularProgress>
   );
@@ -309,7 +348,7 @@ const CircularProgressBar = ({ percentage, size = 200, strokeWidth = 12 }) => {
 const WaterIntakeTracker = () => {
   const [dailyGoal, setDailyGoal] = useState(2000);
   const [selectedDate, setSelectedDate] = useState(
-    format(new Date(), 'yyyy-MM-dd')
+    format(new Date(), "yyyy-MM-dd")
   );
   // Store entries as objects: { id: timestamp, timestamp: Date object, volume: number }
   const [entries, setEntries] = useState([]);
@@ -319,19 +358,26 @@ const WaterIntakeTracker = () => {
   // Load data from localStorage for selected date
   useEffect(() => {
     try {
-      const storedData = JSON.parse(localStorage.getItem('waterIntake')) || {};
+      const storedData = JSON.parse(localStorage.getItem("waterIntake")) || {};
       setIntakeHistory(storedData);
-      // Convert stored timestamps back to Date objects, handle potential invalid dates
-      const todaysEntries = (storedData[selectedDate] || []).map((entry) => {
-        const timestamp = new Date(entry.timestamp);
-        return {
-          ...entry,
-          timestamp: !isNaN(timestamp.getTime()) ? timestamp : new Date(), // Fallback to now if invalid
-        };
-      });
+      // Convert stored timestamps back to Date objects, handle potential invalid dates/volume
+      const todaysEntries = (storedData[selectedDate] || [])
+        .map((entry) => {
+          const timestamp = new Date(entry.timestamp);
+          const volume = Number(entry.volume) || 0; // Ensure volume is a number
+          return {
+            ...entry,
+            volume,
+            timestamp: !isNaN(timestamp.getTime()) ? timestamp : new Date(),
+          };
+        })
+        .filter((entry) => entry.volume > 0); // Filter out entries with 0 volume if necessary
       setEntries(todaysEntries);
     } catch (error) {
-      console.error("Error loading water intake data from localStorage:", error);
+      console.error(
+        "Error loading water intake data from localStorage:",
+        error
+      );
       setIntakeHistory({});
       setEntries([]);
     }
@@ -347,17 +393,19 @@ const WaterIntakeTracker = () => {
     }));
 
     // Only update localStorage if the data has actually changed
-    if (JSON.stringify(currentHistoryForDate) !== JSON.stringify(entriesToSave)) {
+    if (
+      JSON.stringify(currentHistoryForDate) !== JSON.stringify(entriesToSave)
+    ) {
       const updatedHistory = {
         ...intakeHistory,
         [selectedDate]: entriesToSave,
       };
       try {
-          setIntakeHistory(updatedHistory);
-          localStorage.setItem('waterIntake', JSON.stringify(updatedHistory));
+        setIntakeHistory(updatedHistory);
+        localStorage.setItem("waterIntake", JSON.stringify(updatedHistory));
       } catch (error) {
-          console.error("Error saving water intake data to localStorage:", error);
-          // Potentially handle storage quota exceeded errors
+        console.error("Error saving water intake data to localStorage:", error);
+        // Potentially handle storage quota exceeded errors
       }
     }
   }, [entries, selectedDate, intakeHistory]);
@@ -388,9 +436,19 @@ const WaterIntakeTracker = () => {
     if (!isNaN(val) && val >= 0) setDailyGoal(val);
   };
 
-  const totalIntake = entries.reduce((sum, entry) => sum + entry.volume, 0);
-  const progressPercent = dailyGoal > 0 ? Math.min((totalIntake / dailyGoal) * 100, 100) : 0;
-  const remainingIntake = Math.max(0, dailyGoal - totalIntake);
+  // Ensure volume is treated as number, default to 0 if invalid
+  const totalIntake = entries.reduce(
+    (sum, entry) => sum + (Number(entry.volume) || 0),
+    0
+  );
+  const numberOfCups = entries.length;
+  // Ensure dailyGoal is a number before calculating percentage
+  const currentDailyGoal = Number(dailyGoal) || 0;
+  const progressPercent =
+    currentDailyGoal > 0
+      ? Math.min((totalIntake / currentDailyGoal) * 100, 100)
+      : 0;
+  const remainingIntake = Math.max(0, currentDailyGoal - totalIntake);
 
   return (
     <Container>
@@ -401,15 +459,23 @@ const WaterIntakeTracker = () => {
 
       <MainContent>
         <CircularProgressSection>
-          <CircularProgressBar percentage={progressPercent} />
+          <CircularProgressBar
+            percentage={isNaN(progressPercent) ? 0 : progressPercent}
+          />
           <ProgressTextContainer>
-            <ProgressPercentText>{progressPercent.toFixed(0)}%</ProgressPercentText>
-            <ProgressAmountText>{totalIntake}ml</ProgressAmountText>
+            <ProgressPercentText>
+              {isNaN(progressPercent) ? 0 : progressPercent.toFixed(0)}%
+            </ProgressPercentText>
+            <ProgressAmountText>
+              {isNaN(totalIntake) ? 0 : totalIntake}ml
+            </ProgressAmountText>
             <ProgressRemainingText>
-              {remainingIntake > 0 ? `-${remainingIntake}ml remaining` : 'Goal achieved!'}
+              {remainingIntake > 0
+                ? `-${remainingIntake}ml remaining`
+                : "Goal achieved!"}
             </ProgressRemainingText>
           </ProgressTextContainer>
-          <GoalText>Daily Goal: {dailyGoal}ml</GoalText>
+          <GoalText>Daily Goal: {currentDailyGoal}ml</GoalText>
         </CircularProgressSection>
 
         <CupSection>
@@ -421,38 +487,40 @@ const WaterIntakeTracker = () => {
             onClick={handleAddCup}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            style={{ marginBottom: '1.5rem' }} /* Add spacing */
+            style={{ marginBottom: "1.5rem", width: "100%" }} /* Add spacing */
           >
             <FaPlus /> Add Cup ({CUP_VOLUME}ml)
           </Button>
 
-          <SectionTitle>Today's Log ({format(new Date(selectedDate), 'MMM dd')})</SectionTitle>
-          <LogList>
-            <AnimatePresence initial={false}>
-              {entries.length > 0 ? (
-                entries
-                  .sort((a, b) => b.timestamp - a.timestamp) // Show newest first
-                  .map((entry) => (
-                    <LogItem
-                      key={entry.id}
-                      layout
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    >
-                      <LogTime>
-                        <FaClock />
-                        {format(entry.timestamp, 'HH:mm aa')}
-                      </LogTime>
-                      <LogAmount>+{entry.volume}ml</LogAmount>
-                    </LogItem>
-                  ))
-              ) : (
-                <EmptyLogText>No entries for today yet.</EmptyLogText>
-              )}
-            </AnimatePresence>
-          </LogList>
+          {/* NEW: Counters */}
+          <CounterContainer>
+            <CounterItem>
+              <CounterValue
+                key={`cups-${numberOfCups}`} // Add key for animation
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {numberOfCups}
+              </CounterValue>
+              <CounterLabel>
+                <FaHashtag /> Cups Today
+              </CounterLabel>
+            </CounterItem>
+            <CounterItem>
+              <CounterValue
+                key={`ml-${totalIntake}`} // Add key for animation
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isNaN(totalIntake) ? 0 : totalIntake}
+              </CounterValue>
+              <CounterLabel>
+                <FaGlassWhiskey /> ml Today
+              </CounterLabel>
+            </CounterItem>
+          </CounterContainer>
         </CupSection>
       </MainContent>
 
@@ -464,7 +532,7 @@ const WaterIntakeTracker = () => {
           whileTap={{ scale: 0.95 }}
           disabled={entries.length === 0}
         >
-          <FaTrashAlt /> Remove Last Entry
+          <FaTrashAlt /> Remove Last Cup
         </Button>
         <Button
           variant="danger"
@@ -483,11 +551,7 @@ const WaterIntakeTracker = () => {
             <FaCalendarAlt />
             <CardTitle>Select Date</CardTitle>
           </CardHeader>
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={handleDateChange}
-          />
+          <Input type="date" value={selectedDate} onChange={handleDateChange} />
         </Card>
 
         <Card>
@@ -510,51 +574,57 @@ const WaterIntakeTracker = () => {
       <Button
         onClick={() => setShowHistory(!showHistory)}
         variant="secondary"
-        style={{ marginTop: '2rem', display: 'flex', margin: '2rem auto 0' }}
+        style={{ marginTop: "2rem", display: "flex", margin: "2rem auto 0" }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <FaHistory /> {showHistory ? 'Hide Daily History' : 'Show Daily History'}
+        <FaHistory />{" "}
+        {showHistory ? "Hide Daily History" : "Show Daily History"}
       </Button>
 
       <AnimatePresence>
         {showHistory && (
-          <LogSection
+          <HistoryDisplaySection
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <LogHeader>
-              <LogTitle>Daily Intake History</LogTitle>
-            </LogHeader>
-            <LogList style={{ maxHeight: '400px' }}>
+            <HistoryHeader>
+              <HistoryTitle>Daily Intake History</HistoryTitle>
+            </HistoryHeader>
+            <HistoryList style={{ maxHeight: "400px" }}>
               {Object.entries(intakeHistory)
-                .filter(([, dateEntries]) => dateEntries.length > 0) // Only show days with entries
+                .filter(([, dateEntries]) => dateEntries.length > 0)
                 .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
                 .map(([date, dateEntries]) => {
                   const dailyTotal = (dateEntries || []).reduce(
                     (sum, entry) => sum + (entry.volume || 0),
                     0
                   );
-                  // Basic check if date is valid before formatting
                   const isValidDate = !isNaN(new Date(date).getTime());
                   return (
-                    <LogItem key={date} layout>
-                      <LogTime>{isValidDate ? format(new Date(date), 'MMMM dd, yyyy') : 'Invalid Date'}</LogTime>
-                      <LogAmount>{dailyTotal}ml</LogAmount>
-                    </LogItem>
+                    <HistoryItem key={date} layout>
+                      <HistoryDate>
+                        {isValidDate
+                          ? format(new Date(date), "MMMM dd, yyyy")
+                          : "Invalid Date"}
+                      </HistoryDate>
+                      <HistoryAmount>{dailyTotal}ml</HistoryAmount>
+                    </HistoryItem>
                   );
                 })}
-                {Object.keys(intakeHistory).filter(key => intakeHistory[key].length > 0).length === 0 && (
-                    <EmptyLogText>No historical data found.</EmptyLogText>
-                )}
-            </LogList>
-          </LogSection>
+              {Object.keys(intakeHistory).filter(
+                (key) => intakeHistory[key]?.length > 0
+              ).length === 0 && (
+                <EmptyHistoryText>No historical data found.</EmptyHistoryText>
+              )}
+            </HistoryList>
+          </HistoryDisplaySection>
         )}
       </AnimatePresence>
     </Container>
   );
 };
 
-export default WaterIntakeTracker; 
+export default WaterIntakeTracker;
