@@ -159,9 +159,8 @@ const muscleGroups = [
   { name: "Chest", value: "chest", image: "/images/muscles/chest.png" },
   { name: "Back", value: "back", image: "/images/muscles/back.jpeg" },
   { name: "Legs", value: "legs", image: "/images/muscles/legs.png" },
-  { name: "Shoulders", value: "shoulders", image: "/images/muscles/core.png" },
-  { name: "Arms", value: "arms", image: "/images/muscles/arms.jpeg" },
   { name: "Abs", value: "abs", image: "/images/muscles/core.png" },
+  { name: "Arms", value: "arms", image: "/images/muscles/arms.jpeg" },
 ];
 
 const WorkoutGenerator = () => {

@@ -15,7 +15,7 @@ const videoSrc = "/images/quotes/quote_background.mp4";
 const QuoteContainer = styled(motion.div)`
   position: relative;
   width: 100%;
-  height: 200px; // Adjust height as needed
+  height: 250px; // Increased height
   border-radius: 1rem;
   overflow: hidden;
   margin-bottom: 2rem;
@@ -107,34 +107,43 @@ const ErrorIndicator = styled.div`
 // --- Component Logic ---
 const MotivationalQuote = () => {
   const [quote, setQuote] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Start loading on initial mount
   const [error, setError] = useState(null);
 
   const fetchQuote = useCallback(async () => {
-    // Show loading only on initial load or if there's an error
-    if (!quote || error) setIsLoading(true);
+    // Set loading true only if it's the initial load OR if a previous attempt failed
+    if (!quote || error) {
+      setIsLoading(true);
+    }
+    // Clear previous error before fetching
     setError(null);
+
     try {
       const response = await axios.get(API_URL);
       if (response.data && response.data.content && response.data.author) {
-        setQuote({
+        setQuote({ // Update quote state
           content: response.data.content,
           author: response.data.author,
         });
+        setIsLoading(false); // Stop loading on success
       } else {
+        console.error("Invalid quote format:", response.data);
         throw new Error("Invalid quote format received");
       }
     } catch (err) {
-      console.error("Error fetching quote:", err);
-      setError("Couldn't load a quote right now.");
-      // Don't clear the old quote if a refresh fails
-      // setQuote(null); // Keep previous quote on error
-    } finally {
-      setIsLoading(false); // Always set loading to false after attempt
+      console.error("Error fetching quote:", err.response || err.message || err);
+      // Keep the old quote if available, otherwise show error
+      if (!quote) {
+        setError("Couldn't load quote.");
+      } else {
+         // Log error but don't set the main error state if a quote is already displayed
+         console.warn("Failed to refresh quote, keeping previous one.");
+      }
+       setIsLoading(false); // Stop loading even on error
     }
-    // Removed dependencies: isLoading, quote. Only fetch based on interval or mount.
+    // Removed dependencies - rely on mount and interval
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]); // Re-fetch if there was an error maybe? Or just rely on interval.
+  }, [quote, error]); // Depend on quote and error to manage loading state correctly
 
   // Initial fetch
   useEffect(() => {
@@ -152,36 +161,35 @@ const MotivationalQuote = () => {
     <QuoteContainer layout>
       {/* Video Background */}
       <BackgroundVideo
-        key={videoSrc} // Use key to potentially help React manage the element
+        key={videoSrc}
         autoPlay
         loop
-        muted // Muted is required for autoplay in most browsers
-        playsInline // Important for mobile playback
+        muted
+        playsInline
         src={videoSrc}
       />
       <Overlay />
       <QuoteWrapper
-        key={quote ? quote.content : "loading"} // Animate when quote content changes
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        key={quote ? quote.content : 'loading'}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }} // Slightly slower transition for text
       >
-        {isLoading ? (
+        {isLoading && !quote ? ( // Show loader only on initial load when no quote exists yet
           <LoadingIndicator>
             <FaSpinner />
           </LoadingIndicator>
-        ) : error && !quote ? ( // Show error only if there's no quote to display
-          <ErrorIndicator>
-            <FaExclamationTriangle /> {error}
-          </ErrorIndicator>
-        ) : quote ? (
+        ) : quote ? ( // If we have a quote, display it (even if there was a refresh error)
           <>
             <QuoteText>"{quote.content}"</QuoteText>
             <AuthorText>- {quote.author}</AuthorText>
           </>
-        ) : (
-          <ErrorIndicator>Could not load quote.</ErrorIndicator> // Fallback if no quote and no error string
-        )}
+        ) : error ? ( // Only show error if loading finished and there's no quote to show
+            <ErrorIndicator>
+                <FaExclamationTriangle /> {error}
+            </ErrorIndicator>
+        ) : null /* Should not happen, but prevents rendering issues */
+        }
       </QuoteWrapper>
     </QuoteContainer>
   );
