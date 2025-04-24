@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
   FaPlus,
-  FaTint,
   FaTrashAlt,
   FaHistory,
   FaCalendarAlt,
