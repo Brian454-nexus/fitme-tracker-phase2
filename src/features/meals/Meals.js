@@ -10,6 +10,7 @@ import {
   FaExclamationTriangle,
   FaCalendarAlt,
 } from "react-icons/fa";
+import LogMealModal from './LogMealModal'; // Import the modal
 
 // Debounce Hook (optional but recommended for search)
 function useDebounce(value, delay) {
@@ -321,11 +322,15 @@ const Meals = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // State for manually logged meals (keep for summary, remove logging UI for now)
-  const [loggedMeals] = useState(() => {
-    const savedMeals = localStorage.getItem("meals"); // Use a different key?
+  // State for manually logged meals
+  const [loggedMeals, setLoggedMeals] = useState(() => {
+    const savedMeals = localStorage.getItem("loggedMealsData");
     return savedMeals ? JSON.parse(savedMeals) : [];
   });
+
+  // NEW: Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMealForModal, setSelectedMealForModal] = useState(null);
 
   // Debounced search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -458,9 +463,18 @@ const Meals = () => {
     // Added meals.length to dependency array
   }, [debouncedSearchTerm, selectedCategory, fetchMeals, meals.length]); 
 
+  // NEW: useEffect to save loggedMeals to localStorage
+  useEffect(() => {
+    try {
+        localStorage.setItem("loggedMealsData", JSON.stringify(loggedMeals));
+    } catch (error) {
+        console.error("Error saving logged meals to localStorage:", error);
+    }
+  }, [loggedMeals]);
+
   // --- Daily Summary Calculations (using loggedMeals) ---
   const today = new Date().toISOString().split("T")[0];
-  const todayLoggedMeals = loggedMeals.filter((meal) => meal.date === today); // Filter logged meals
+  const todayLoggedMeals = loggedMeals.filter((meal) => meal.date === today);
   const totalCaloriesToday = todayLoggedMeals.reduce(
     (sum, meal) => sum + parseInt(meal.calories || 0),
     0
@@ -491,12 +505,26 @@ const Meals = () => {
     localStorage.setItem("dailyCalorieGoal", value.toString());
   };
 
-  // Placeholder for selecting a meal (later for logging)
+  // UPDATED: Select Meal Handler
   const handleSelectMeal = (meal) => {
-    console.log("Selected Meal:", meal);
-    // TODO: Implement logging functionality - maybe open a modal to add details?
-    alert(`Selected ${meal.strMeal}. Logging function not yet implemented.`);
+    console.log("Selected Meal for Modal:", meal);
+    setSelectedMealForModal(meal);
+    setIsModalOpen(true);
   };
+
+  // NEW: Log Meal Handler (passed to modal)
+  const handleLogMeal = (loggedData) => {
+    console.log("Logging Meal Data:", loggedData);
+    setLoggedMeals(prevLoggedMeals => [...prevLoggedMeals, loggedData]);
+    setIsModalOpen(false);
+    setSelectedMealForModal(null);
+    // Optionally: Show a success message/toast
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMealForModal(null);
+  }
 
   return (
     <MealsContainer>
@@ -630,6 +658,15 @@ const Meals = () => {
           </ErrorMessage>
         )}
       </ResultsContainer>
+
+      {/* Render Modal Conditionally */}
+      {isModalOpen && selectedMealForModal && (
+          <LogMealModal
+            meal={selectedMealForModal}
+            onClose={handleCloseModal}
+            onLogMeal={handleLogMeal}
+          />
+      )}
     </MealsContainer>
   );
 };
