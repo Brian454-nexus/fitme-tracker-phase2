@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import { FaSpinner, FaExclamationTriangle } from "react-icons/fa";
 
 // --- Config ---
-const API_URL = "https://zenquotes.io/api/random"; // Changed API URL
+const API_URL = 'https://api.api-ninjas.com/v1/quotes'; // Changed API URL
 const REFRESH_INTERVAL = 20000; // 20 seconds
+const API_KEY = process.env.REACT_APP_API_NINJAS_KEY; // Get key from .env
 
 // Video background path (adjust if needed)
 const videoSrc = "/images/quotes/quote_background.mp4";
@@ -110,69 +111,62 @@ const MotivationalQuote = () => {
   const [isLoading, setIsLoading] = useState(true); // Start loading true only on initial mount
   const [error, setError] = useState(null);
 
-  // useCallback with empty dependency array: function definition is stable
   const fetchQuote = useCallback(async () => {
-    console.log("Fetching new quote...");
-    // Set loading true only if this is the first load (no quote yet)
-    // For refreshes, we don't necessarily need to show the spinner
-    setQuote((currentQuote) => {
-      if (!currentQuote) {
-        console.log("Setting loading to true (initial fetch)");
-        setIsLoading(true);
-      }
-      return currentQuote;
+    console.log("Fetching new quote from API Ninjas...");
+    setQuote(currentQuote => {
+        if (!currentQuote) {
+            console.log("Setting loading to true (initial fetch)");
+            setIsLoading(true);
+        }
+        return currentQuote;
     });
-    setError(null); // Clear previous error
+    setError(null);
+
+    if (!API_KEY) {
+        console.error("API Key for API Ninjas is missing!");
+        setError("API Key is missing.");
+        setIsLoading(false);
+        return; // Stop if no key
+    }
 
     try {
       console.log(`Requesting: ${API_URL}`);
-      // ZenQuotes sometimes has CORS issues with browser requests.
-      // A simple proxy might be needed if direct calls fail.
-      // Let's try direct first, then consider a proxy like `https://cors-anywhere.herokuapp.com/` if needed.
-      const response = await axios.get(`https://cors-anywhere.herokuapp.com/${API_URL}`); // Proxy example
-      //const response = await axios.get(API_URL);
-      console.log("API Response Received:", response);
+      // Direct call to API Ninjas with API Key in header
+      const response = await axios.get(API_URL, {
+          headers: { 'X-Api-Key': API_KEY }
+      });
+      console.log("API Response Received (API Ninjas):", response);
 
-      // ZenQuotes returns an array, usually with one object.
-      if (
-        response.data &&
-        response.data.length > 0 &&
-        response.data[0].q &&
-        response.data[0].a
-      ) {
+      // API Ninjas returns an array, usually with one object.
+      if (response.data && response.data.length > 0 && response.data[0].quote && response.data[0].author) {
         const fetchedQuote = response.data[0];
-        console.log("Valid quote found:", fetchedQuote.q);
+        console.log("Valid quote found:", fetchedQuote.quote);
         setQuote({
-          content: fetchedQuote.q, // Use 'q' for quote content
-          author: fetchedQuote.a, // Use 'a' for author
+          content: fetchedQuote.quote, // Use 'quote' for quote content
+          author: fetchedQuote.author, // Use 'author' for author
         });
         setError(null);
       } else {
         console.error("Invalid quote format received:", response.data);
-        throw new Error("Invalid quote format received from ZenQuotes");
+        throw new Error("Invalid quote format received from API Ninjas");
       }
     } catch (err) {
-      const errorMsg = err.response
-        ? JSON.stringify(err.response.data)
-        : err.message;
-      console.error("Error fetching quote:", errorMsg);
-      setQuote((currentQuote) => {
-        if (!currentQuote) {
-          console.log("Setting error state because no current quote exists.");
-          setError("Couldn't load quote.");
-        } else {
-          console.warn(
-            "Failed to refresh quote, keeping previous one. Error:",
-            errorMsg
-          );
-        }
-        return currentQuote;
-      });
+        const errorMsg = err.response ? `${err.response.status} ${JSON.stringify(err.response.data)}` : err.message;
+        console.error("Error fetching quote:", errorMsg);
+        setQuote(currentQuote => {
+            if (!currentQuote) {
+                console.log("Setting error state because no current quote exists.");
+                setError("Couldn't load quote.");
+            } else {
+                console.warn("Failed to refresh quote, keeping previous one. Error:", errorMsg);
+            }
+            return currentQuote;
+        });
     } finally {
-      console.log("Setting loading to false");
-      setIsLoading(false);
+        console.log("Setting loading to false");
+        setIsLoading(false);
     }
-  }, []);
+  }, []); // Empty dependency array
 
   // Initial fetch
   useEffect(() => {
