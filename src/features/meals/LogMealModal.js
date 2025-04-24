@@ -7,6 +7,7 @@ import {
   FaDrumstickBite,
   FaBreadSlice,
   FaOilCan,
+  FaUtensils
 } from "react-icons/fa"; // Example icons
 
 // Styled Components for the Modal
