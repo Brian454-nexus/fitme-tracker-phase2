@@ -3,20 +3,34 @@ import MealForm from "./components/MealForm";
 import MealList from "./components/MealList";
 import "./Meals.css";
 
-const Meals = ({ searchTerm, setSearchTerm, selectedMealType, setSelectedMealType, dailyCalorieGoal, setDailyCalorieGoal }) => {
+const Meals = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMealType, setSelectedMealType] = useState("all");
+  const [dailyCalorieGoal, setDailyCalorieGoal] = useState(() => {
+    const savedGoal = localStorage.getItem("dailyCalorieGoal");
+    return savedGoal ? parseInt(savedGoal, 10) : 2000;
+  });
   const [meals, setMeals] = useState(() => {
     const savedMeals = localStorage.getItem("meals");
     return savedMeals ? JSON.parse(savedMeals) : [];
   });
   const [editingMeal, setEditingMeal] = useState(null);
+  const [totalCaloriesToday, setTotalCaloriesToday] = useState(0);
 
   useEffect(() => {
     localStorage.setItem("meals", JSON.stringify(meals));
   }, [meals]);
 
+  useEffect(() => {
+    localStorage.setItem("dailyCalorieGoal", dailyCalorieGoal.toString());
+  }, [dailyCalorieGoal]);
+
+  useEffect(() => {
+    console.log("Fetching meals and calculating calories...");
+  }, [selectedMealType, searchTerm]);
+
   const today = new Date().toISOString().split("T")[0];
   const todayMeals = meals.filter(meal => meal.date === today);
-  const totalCaloriesToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.calories || 0), 0);
   const totalProteinToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.protein || 0), 0);
   const totalCarbsToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.carbs || 0), 0);
   const totalFatsToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.fats || 0), 0);
