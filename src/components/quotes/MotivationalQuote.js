@@ -108,14 +108,12 @@ const ErrorIndicator = styled.div`
 // --- Component Logic ---
 const MotivationalQuote = () => {
   const [quote, setQuote] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Start loading true only on initial mount
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchQuote = useCallback(async () => {
-    console.log("Fetching new quote from API Ninjas...");
     setQuote(currentQuote => {
         if (!currentQuote) {
-            console.log("Setting loading to true (initial fetch)");
             setIsLoading(true);
         }
         return currentQuote;
@@ -126,24 +124,19 @@ const MotivationalQuote = () => {
         console.error("API Key for API Ninjas is missing!");
         setError("API Key is missing.");
         setIsLoading(false);
-        return; // Stop if no key
+        return;
     }
 
     try {
-      console.log(`Requesting: ${API_URL}`);
-      // Direct call to API Ninjas with API Key in header
       const response = await axios.get(API_URL, {
           headers: { 'X-Api-Key': API_KEY }
       });
-      console.log("API Response Received (API Ninjas):", response);
 
-      // API Ninjas returns an array, usually with one object.
       if (response.data && response.data.length > 0 && response.data[0].quote && response.data[0].author) {
         const fetchedQuote = response.data[0];
-        console.log("Valid quote found:", fetchedQuote.quote);
         setQuote({
-          content: fetchedQuote.quote, // Use 'quote' for quote content
-          author: fetchedQuote.author, // Use 'author' for author
+          content: fetchedQuote.quote,
+          author: fetchedQuote.author,
         });
         setError(null);
       } else {
@@ -155,7 +148,6 @@ const MotivationalQuote = () => {
         console.error("Error fetching quote:", errorMsg);
         setQuote(currentQuote => {
             if (!currentQuote) {
-                console.log("Setting error state because no current quote exists.");
                 setError("Couldn't load quote.");
             } else {
                 console.warn("Failed to refresh quote, keeping previous one. Error:", errorMsg);
@@ -163,33 +155,22 @@ const MotivationalQuote = () => {
             return currentQuote;
         });
     } finally {
-        console.log("Setting loading to false");
         setIsLoading(false);
     }
-  }, []); // Empty dependency array
+  }, []);
 
   // Initial fetch
   useEffect(() => {
     fetchQuote();
-  }, [fetchQuote]); // Depends on the stable fetchQuote function
+  }, [fetchQuote]);
 
   // Auto-refresh interval
   useEffect(() => {
     const intervalId = setInterval(fetchQuote, REFRESH_INTERVAL);
     return () => {
-      console.log("Clearing quote refresh interval");
-      clearInterval(intervalId);
-    };
-  }, [fetchQuote]); // Depends on the stable fetchQuote function
-
-  console.log(
-    "Render - isLoading:",
-    isLoading,
-    "quote:",
-    quote,
-    "error:",
-    error
-  );
+        clearInterval(intervalId);
+    }
+  }, [fetchQuote]);
 
   return (
     <QuoteContainer layout>
@@ -204,12 +185,11 @@ const MotivationalQuote = () => {
       />
       <Overlay />
       <QuoteWrapper
-        key={quote ? quote.content : "loading"} // Animate when quote content changes
+        key={quote ? quote.content : "loading"}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        {/* Render Logic prioritizing loading state */}
         {isLoading ? (
           <LoadingIndicator>
             <FaSpinner />
@@ -224,7 +204,7 @@ const MotivationalQuote = () => {
             <FaExclamationTriangle /> {error}
           </ErrorIndicator>
         ) : (
-          <ErrorIndicator>Could not load quote.</ErrorIndicator> // Fallback
+          <ErrorIndicator>Could not load quote.</ErrorIndicator>
         )}
       </QuoteWrapper>
     </QuoteContainer>
