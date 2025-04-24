@@ -103,10 +103,6 @@ const FormGroup = styled.div`
   }
 `;
 
-const FullWidthGroup = styled(FormGroup)`
-  grid-column: 1 / -1;
-`;
-
 const ButtonContainer = styled.div`
   grid-column: 1 / -1;
   display: flex;
