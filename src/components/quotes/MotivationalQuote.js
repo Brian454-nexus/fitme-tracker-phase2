@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { FaSpinner, FaExclamationTriangle } from "react-icons/fa";
 
 // --- Config ---
-const API_URL = "https://api.quotable.io/random";
+const API_URL = "https://zenquotes.io/api/random"; // Changed API URL
 const REFRESH_INTERVAL = 20000; // 20 seconds
 
 // Video background path (adjust if needed)
@@ -115,51 +115,64 @@ const MotivationalQuote = () => {
     console.log("Fetching new quote...");
     // Set loading true only if this is the first load (no quote yet)
     // For refreshes, we don't necessarily need to show the spinner
-    setQuote(currentQuote => {
-        if (!currentQuote) {
-            console.log("Setting loading to true (initial fetch)");
-            setIsLoading(true);
-        }
-        return currentQuote;
+    setQuote((currentQuote) => {
+      if (!currentQuote) {
+        console.log("Setting loading to true (initial fetch)");
+        setIsLoading(true);
+      }
+      return currentQuote;
     });
     setError(null); // Clear previous error
 
     try {
       console.log(`Requesting: ${API_URL}`);
+      // ZenQuotes sometimes has CORS issues with browser requests.
+      // A simple proxy might be needed if direct calls fail.
+      // Let's try direct first, then consider a proxy like `https://cors-anywhere.herokuapp.com/` if needed.
+      // const response = await axios.get(`https://cors-anywhere.herokuapp.com/${API_URL}`); // Proxy example
       const response = await axios.get(API_URL);
       console.log("API Response Received:", response);
 
-      if (response.data && response.data.content && response.data.author) {
-        console.log("Valid quote found:", response.data.content);
+      // ZenQuotes returns an array, usually with one object.
+      if (
+        response.data &&
+        response.data.length > 0 &&
+        response.data[0].q &&
+        response.data[0].a
+      ) {
+        const fetchedQuote = response.data[0];
+        console.log("Valid quote found:", fetchedQuote.q);
         setQuote({
-          content: response.data.content,
-          author: response.data.author,
+          content: fetchedQuote.q, // Use 'q' for quote content
+          author: fetchedQuote.a, // Use 'a' for author
         });
-        setError(null); // Ensure error is null on success
+        setError(null);
       } else {
         console.error("Invalid quote format received:", response.data);
-        throw new Error("Invalid quote format received");
+        throw new Error("Invalid quote format received from ZenQuotes");
       }
     } catch (err) {
-      const errorMsg = err.response ? JSON.stringify(err.response.data) : err.message;
+      const errorMsg = err.response
+        ? JSON.stringify(err.response.data)
+        : err.message;
       console.error("Error fetching quote:", errorMsg);
-
-      // Only set persistent error if there's no quote currently displayed
-      setQuote(currentQuote => {
-          if (!currentQuote) {
-              console.log("Setting error state because no current quote exists.");
-              setError("Couldn't load quote.");
-          } else {
-              console.warn("Failed to refresh quote, keeping previous one. Error:", errorMsg);
-          }
-          return currentQuote;
+      setQuote((currentQuote) => {
+        if (!currentQuote) {
+          console.log("Setting error state because no current quote exists.");
+          setError("Couldn't load quote.");
+        } else {
+          console.warn(
+            "Failed to refresh quote, keeping previous one. Error:",
+            errorMsg
+          );
+        }
+        return currentQuote;
       });
     } finally {
       console.log("Setting loading to false");
-      // Always ensure loading is set to false after an attempt completes
       setIsLoading(false);
     }
-  }, []); // Empty dependency array
+  }, []);
 
   // Initial fetch
   useEffect(() => {
@@ -170,12 +183,19 @@ const MotivationalQuote = () => {
   useEffect(() => {
     const intervalId = setInterval(fetchQuote, REFRESH_INTERVAL);
     return () => {
-        console.log("Clearing quote refresh interval");
-        clearInterval(intervalId);
-    }
+      console.log("Clearing quote refresh interval");
+      clearInterval(intervalId);
+    };
   }, [fetchQuote]); // Depends on the stable fetchQuote function
 
-  console.log("Render - isLoading:", isLoading, "quote:", quote, "error:", error);
+  console.log(
+    "Render - isLoading:",
+    isLoading,
+    "quote:",
+    quote,
+    "error:",
+    error
+  );
 
   return (
     <QuoteContainer layout>
