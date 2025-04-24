@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { FaPlus, FaTint, FaTrashAlt, FaHistory, FaWater } from 'react-icons/fa';
+import { FaPlus, FaTint, FaTrashAlt, FaHistory } from 'react-icons/fa';
 
 const CUP_VOLUME = 250;
 
@@ -162,7 +162,7 @@ const WaterIntakeTracker = () => {
     const updatedHistory = { ...intakeHistory, [selectedDate]: cups };
     setIntakeHistory(updatedHistory);
     localStorage.setItem('waterIntake', JSON.stringify(updatedHistory));
-  }, [cups, selectedDate]);
+  }, [cups, selectedDate, intakeHistory]);
 
   const handleAddCup = () => {
     setCups([...cups, Date.now()]);
