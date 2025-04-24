@@ -1,20 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
-import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback } from "react";
+import styled, { keyframes } from "styled-components";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { FaSpinner, FaExclamationTriangle } from "react-icons/fa";
 
 // --- Config ---
-const API_URL = 'https://api.quotable.io/random';
+const API_URL = "https://api.quotable.io/random";
 const REFRESH_INTERVAL = 20000; // 20 seconds
 
-// Example background images (replace with your preferred URLs)
-const backgrounds = [
-  '/images/quotes/sky1.jpg', // Assuming you place images here
-  '/images/quotes/sunset1.jpg',
-  '/images/quotes/sky2.jpg',
-  '/images/quotes/sunset2.jpg',
-];
+// Video background path (adjust if needed)
+const videoSrc = "/images/quotes/quote_background.mp4";
 
 // --- Styled Components ---
 const QuoteContainer = styled(motion.div)`
@@ -28,14 +23,18 @@ const QuoteContainer = styled(motion.div)`
   color: white; /* Default text color */
 `;
 
-const BackgroundImage = styled(motion.img)`
+// Changed from img to video
+const BackgroundVideo = styled.video`
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  top: 50%; /* Center video */
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
   z-index: 1;
+  transform: translate(-50%, -50%); /* Center video */
+  object-fit: cover;
 `;
 
 const Overlay = styled.div`
@@ -44,7 +43,10 @@ const Overlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)); /* Dark overlay for text contrast */
+  background: linear-gradient(
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.7)
+  ); /* Adjusted overlay */
   z-index: 2;
 `;
 
@@ -85,7 +87,6 @@ const spin = keyframes`
 `;
 
 const LoadingIndicator = styled.div`
-  /* Style your loading indicator */
   font-size: 1.5rem;
   color: white;
   opacity: 0.8;
@@ -95,7 +96,6 @@ const LoadingIndicator = styled.div`
 `;
 
 const ErrorIndicator = styled.div`
-  /* Style your error indicator */
   color: #ffdddd;
   opacity: 0.9;
   font-size: 1rem;
@@ -109,38 +109,38 @@ const MotivationalQuote = () => {
   const [quote, setQuote] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
   const fetchQuote = useCallback(async () => {
-    // Don't show loading for background refreshes unless it's the initial load
-    if (!quote) setIsLoading(true);
+    // Show loading only on initial load or if there's an error
+    if (!quote || error) setIsLoading(true);
     setError(null);
     try {
       const response = await axios.get(API_URL);
       if (response.data && response.data.content && response.data.author) {
-        setQuote({ content: response.data.content, author: response.data.author });
-        // Cycle background images
-        setCurrentBgIndex((prevIndex) => (prevIndex + 1) % backgrounds.length);
+        setQuote({
+          content: response.data.content,
+          author: response.data.author,
+        });
       } else {
         throw new Error("Invalid quote format received");
       }
     } catch (err) {
       console.error("Error fetching quote:", err);
       setError("Couldn't load a quote right now.");
-      // Keep the old quote if available, otherwise clear it
-      if (!quote) setQuote(null);
+      // Don't clear the old quote if a refresh fails
+      // setQuote(null); // Keep previous quote on error
     } finally {
-      // Only set loading to false after the first successful load
-      if (isLoading && quote) setIsLoading(false);
-       else if(isLoading && !quote) setIsLoading(false); // Also stop loading on initial error
-
+      setIsLoading(false); // Always set loading to false after attempt
     }
-  }, [isLoading, quote]); // Dependencies for useCallback
+    // Removed dependencies: isLoading, quote. Only fetch based on interval or mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]); // Re-fetch if there was an error maybe? Or just rely on interval.
 
   // Initial fetch
   useEffect(() => {
     fetchQuote();
-  }, [fetchQuote]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Fetch only once on mount
 
   // Auto-refresh interval
   useEffect(() => {
@@ -148,43 +148,43 @@ const MotivationalQuote = () => {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [fetchQuote]);
 
-  const currentBackground = backgrounds[currentBgIndex];
-
   return (
     <QuoteContainer layout>
-      <AnimatePresence>
-        <BackgroundImage
-            key={currentBackground} // Animate when background changes
-            src={currentBackground}
-            alt="Motivational background"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.0 }} // Slow fade for background
-        />
-      </AnimatePresence>
+      {/* Video Background */}
+      <BackgroundVideo
+        key={videoSrc} // Use key to potentially help React manage the element
+        autoPlay
+        loop
+        muted // Muted is required for autoplay in most browsers
+        playsInline // Important for mobile playback
+        src={videoSrc}
+      />
       <Overlay />
       <QuoteWrapper
-        key={quote ? quote.content : 'loading'} // Animate when quote content changes
+        key={quote ? quote.content : "loading"} // Animate when quote content changes
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {isLoading && !quote ? (
-          <LoadingIndicator><FaSpinner /></LoadingIndicator>
-        ) : error ? (
-          <ErrorIndicator><FaExclamationTriangle /> {error}</ErrorIndicator>
+        {isLoading ? (
+          <LoadingIndicator>
+            <FaSpinner />
+          </LoadingIndicator>
+        ) : error && !quote ? ( // Show error only if there's no quote to display
+          <ErrorIndicator>
+            <FaExclamationTriangle /> {error}
+          </ErrorIndicator>
         ) : quote ? (
           <>
             <QuoteText>"{quote.content}"</QuoteText>
             <AuthorText>- {quote.author}</AuthorText>
           </>
         ) : (
-           <ErrorIndicator>Could not load quote.</ErrorIndicator> // Fallback if no quote and no error string
+          <ErrorIndicator>Could not load quote.</ErrorIndicator> // Fallback if no quote and no error string
         )}
       </QuoteWrapper>
     </QuoteContainer>
   );
 };
 
-export default MotivationalQuote; 
+export default MotivationalQuote;
