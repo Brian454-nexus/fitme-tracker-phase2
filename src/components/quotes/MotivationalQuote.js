@@ -129,8 +129,8 @@ const MotivationalQuote = () => {
       // ZenQuotes sometimes has CORS issues with browser requests.
       // A simple proxy might be needed if direct calls fail.
       // Let's try direct first, then consider a proxy like `https://cors-anywhere.herokuapp.com/` if needed.
-      // const response = await axios.get(`https://cors-anywhere.herokuapp.com/${API_URL}`); // Proxy example
-      const response = await axios.get(API_URL);
+      const response = await axios.get(`https://cors-anywhere.herokuapp.com/${API_URL}`); // Proxy example
+      //const response = await axios.get(API_URL);
       console.log("API Response Received:", response);
 
       // ZenQuotes returns an array, usually with one object.
