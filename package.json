@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-<<<<<<< HEAD
     "@react-three/drei": "^9.97.0",
     "@react-three/fiber": "^8.15.16",
     "@testing-library/jest-dom": "6.6.3",
@@ -11,7 +10,7 @@
     "@testing-library/user-event": "14.5.2",
     "ajv": "^8.17.1",
     "ajv-keywords": "^5.1.0",
-    "axios": "1.6.7",
+    "axios": "^1.6.7",
     "date-fns": "^4.1.0",
     "framer-motion": "11.0.3",
     "react": "18.2.0",
@@ -23,16 +22,6 @@
     "styled-components": "6.1.8",
     "three": "^0.161.0",
     "web-vitals": "2.1.4"
-=======
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
->>>>>>> 57fe0a304e28b7b29de19e21fe4184a634f54dde
   },
   "scripts": {
     "start": "react-scripts start",
@@ -57,11 +46,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-<<<<<<< HEAD
   },
   "devDependencies": {
     "@mediapipe/tasks-vision": "^0.10.22-rc.20250304"
-=======
->>>>>>> 57fe0a304e28b7b29de19e21fe4184a634f54dde
   }
 }
