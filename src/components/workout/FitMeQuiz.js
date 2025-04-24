@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiClock,
@@ -171,23 +171,6 @@ const NextButton = styled(motion.button)`
   cursor: pointer;
   margin-top: 1rem;
   font-weight: 600;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-const SubmitButton = styled(motion.button)`
-  padding: 1rem 2rem;
-  background: ${theme.accent};
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-top: 2rem;
-  width: 100%;
 
   &:hover {
     opacity: 0.9;

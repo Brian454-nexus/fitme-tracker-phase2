@@ -134,63 +134,6 @@ const SectionTitle = styled.h2`
   font-weight: 600;
 `;
 
-const CupGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-`;
-
-const Cup = styled(motion.div)`
-  background: ${(props) =>
-    props.isFilled
-      ? `linear-gradient(135deg, ${props.theme.accent}, #ff6b6b)`
-      : props.theme.cardBackground};
-  color: ${(props) => (props.isFilled ? 'white' : props.theme.text)};
-  padding: 1.5rem;
-  border-radius: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1),
-      rgba(255, 255, 255, 0)
-    );
-    opacity: ${(props) => (props.isFilled ? 1 : 0)};
-    transition: opacity 0.3s ease;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-const CupIcon = styled(FaTint)`
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-`;
-
-const CupText = styled.span`
-  font-size: 0.9rem;
-  font-weight: 500;
-`;
-
 const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
