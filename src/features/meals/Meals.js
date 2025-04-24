@@ -15,7 +15,6 @@ const Meals = () => {
     return savedMeals ? JSON.parse(savedMeals) : [];
   });
   const [editingMeal, setEditingMeal] = useState(null);
-  const [totalCaloriesToday, setTotalCaloriesToday] = useState(0);
 
   useEffect(() => {
     localStorage.setItem("meals", JSON.stringify(meals));
@@ -30,15 +29,29 @@ const Meals = () => {
   }, [selectedMealType, searchTerm]);
 
   const today = new Date().toISOString().split("T")[0];
-  const todayMeals = meals.filter(meal => meal.date === today);
-  const totalProteinToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.protein || 0), 0);
-  const totalCarbsToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.carbs || 0), 0);
-  const totalFatsToday = todayMeals.reduce((sum, meal) => sum + parseInt(meal.fats || 0), 0);
-  const calorieProgress = Math.min((totalCaloriesToday / dailyCalorieGoal) * 100, 100);
+  const todayMeals = meals.filter((meal) => meal.date === today);
+  const totalProteinToday = todayMeals.reduce(
+    (sum, meal) => sum + parseInt(meal.protein || 0),
+    0
+  );
+  const totalCarbsToday = todayMeals.reduce(
+    (sum, meal) => sum + parseInt(meal.carbs || 0),
+    0
+  );
+  const totalFatsToday = todayMeals.reduce(
+    (sum, meal) => sum + parseInt(meal.fats || 0),
+    0
+  );
+  const calorieProgress = Math.min(
+    (totalCaloriesToday / dailyCalorieGoal) * 100,
+    100
+  );
 
   const handleAddMeal = (newMeal) => {
     if (editingMeal) {
-      setMeals(meals.map(meal => meal.id === editingMeal.id ? newMeal : meal));
+      setMeals(
+        meals.map((meal) => (meal.id === editingMeal.id ? newMeal : meal))
+      );
       setEditingMeal(null);
     } else {
       setMeals([...meals, { ...newMeal, id: Date.now() }]);
@@ -46,7 +59,7 @@ const Meals = () => {
   };
 
   const handleDeleteMeal = (id) => {
-    setMeals(meals.filter(meal => meal.id !== id));
+    setMeals(meals.filter((meal) => meal.id !== id));
   };
 
   const handleEditMeal = (meal) => {
@@ -58,9 +71,12 @@ const Meals = () => {
     setDailyCalorieGoal(value);
   };
 
-  const filteredMeals = meals.filter(meal => {
-    const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedMealType === "all" || meal.mealType === selectedMealType;
+  const filteredMeals = meals.filter((meal) => {
+    const matchesSearch = meal.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesType =
+      selectedMealType === "all" || meal.mealType === selectedMealType;
     return matchesSearch && matchesType;
   });
 
@@ -82,9 +98,14 @@ const Meals = () => {
         </div>
         <div className="calorie-progress">
           <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${calorieProgress}%` }}></div>
+            <div
+              className="progress-fill"
+              style={{ width: `${calorieProgress}%` }}
+            ></div>
           </div>
-          <p>{totalCaloriesToday} / {dailyCalorieGoal} calories</p>
+          <p>
+            {totalCaloriesToday} / {dailyCalorieGoal} calories
+          </p>
         </div>
         <div className="nutrition-summary">
           <div>Protein: {totalProteinToday}g</div>
