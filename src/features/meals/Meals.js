@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled, { keyframes } from "styled-components";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import axios from "axios";
 import {
   FaSearch,
@@ -322,7 +322,7 @@ const Meals = () => {
   const [error, setError] = useState(null);
 
   // State for manually logged meals (keep for summary, remove logging UI for now)
-  const [loggedMeals, setLoggedMeals] = useState(() => {
+  const [loggedMeals] = useState(() => {
     const savedMeals = localStorage.getItem("meals"); // Use a different key?
     return savedMeals ? JSON.parse(savedMeals) : [];
   });
@@ -437,11 +437,11 @@ const Meals = () => {
     // Trigger fetch when debounced term or category changes
     // Avoid initial fetch if search is empty and no category selected
     if (debouncedSearchTerm || selectedCategory) {
-      fetchMeals();
+        fetchMeals();
     } else if (
       !debouncedSearchTerm &&
       !selectedCategory &&
-      meals.length === 0
+      meals.length === 0 // Check if meals array is empty
     ) {
       // If everything is empty and no meals loaded yet, fetch random
       const fetchRandom = async () => {
@@ -450,16 +450,13 @@ const Meals = () => {
         try {
           const response = await axios.get(`${MEALDB_API_BASE}random.php`);
           setMeals(response.data.meals || []);
-        } catch (err) {
-          setError("Could not fetch meals.");
-          setMeals([]);
-        } finally {
-          setIsLoading(false);
-        }
+        } catch (err) { setError("Could not fetch meals."); setMeals([]); }
+        finally { setIsLoading(false); }
       };
       fetchRandom();
     }
-  }, [debouncedSearchTerm, selectedCategory, fetchMeals]); // Include fetchMeals in deps
+    // Added meals.length to dependency array
+  }, [debouncedSearchTerm, selectedCategory, fetchMeals, meals.length]); 
 
   // --- Daily Summary Calculations (using loggedMeals) ---
   const today = new Date().toISOString().split("T")[0];
