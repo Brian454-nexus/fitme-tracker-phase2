@@ -10,6 +10,7 @@ import ImageViewer from "./ImageViewer";
 import FitMeQuiz from "./FitMeQuiz";
 import ThemeToggle from "../ThemeToggle";
 import { useTheme } from "../../context/ThemeContext";
+import MotivationalQuote from "../quotes/MotivationalQuote";
 
 const lightTheme = {
   primary: "#FF4500",
@@ -212,8 +213,10 @@ const WorkoutGenerator = () => {
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <Container>
-        <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+        <ThemeToggle toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
         <Title>Workout Generator</Title>
+
+        <MotivationalQuote />
 
         <ButtonContainer>
           <QuizButton
