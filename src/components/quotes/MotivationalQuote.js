@@ -112,43 +112,50 @@ const MotivationalQuote = () => {
 
   // useCallback with empty dependency array: function definition is stable
   const fetchQuote = useCallback(async () => {
-    // Don't set loading true here for refreshes, only clear error
-    setError(null);
-
-    // Set loading true ONLY if it's the initial load phase (no quote yet)
-    // Use functional update for safety if called rapidly
-    setQuote((currentQuote) => {
-      if (!currentQuote) {
-        setIsLoading(true);
-      }
-      return currentQuote;
+    console.log("Fetching new quote...");
+    // Set loading true only if this is the first load (no quote yet)
+    // For refreshes, we don't necessarily need to show the spinner
+    setQuote(currentQuote => {
+        if (!currentQuote) {
+            console.log("Setting loading to true (initial fetch)");
+            setIsLoading(true);
+        }
+        return currentQuote;
     });
+    setError(null); // Clear previous error
 
     try {
+      console.log(`Requesting: ${API_URL}`);
       const response = await axios.get(API_URL);
+      console.log("API Response Received:", response);
+
       if (response.data && response.data.content && response.data.author) {
+        console.log("Valid quote found:", response.data.content);
         setQuote({
           content: response.data.content,
           author: response.data.author,
         });
+        setError(null); // Ensure error is null on success
       } else {
-        console.error("Invalid quote format:", response.data);
+        console.error("Invalid quote format received:", response.data);
         throw new Error("Invalid quote format received");
       }
     } catch (err) {
-      console.error(
-        "Error fetching quote:",
-        err.response || err.message || err
-      );
-      // Only set error state if there's no quote currently displayed
-      // Otherwise, failed refreshes are silent (logged to console)
-      setQuote((currentQuote) => {
-        if (!currentQuote) {
-          setError("Couldn't load quote.");
-        }
-        return currentQuote;
+      const errorMsg = err.response ? JSON.stringify(err.response.data) : err.message;
+      console.error("Error fetching quote:", errorMsg);
+
+      // Only set persistent error if there's no quote currently displayed
+      setQuote(currentQuote => {
+          if (!currentQuote) {
+              console.log("Setting error state because no current quote exists.");
+              setError("Couldn't load quote.");
+          } else {
+              console.warn("Failed to refresh quote, keeping previous one. Error:", errorMsg);
+          }
+          return currentQuote;
       });
     } finally {
+      console.log("Setting loading to false");
       // Always ensure loading is set to false after an attempt completes
       setIsLoading(false);
     }
@@ -162,8 +169,13 @@ const MotivationalQuote = () => {
   // Auto-refresh interval
   useEffect(() => {
     const intervalId = setInterval(fetchQuote, REFRESH_INTERVAL);
-    return () => clearInterval(intervalId);
+    return () => {
+        console.log("Clearing quote refresh interval");
+        clearInterval(intervalId);
+    }
   }, [fetchQuote]); // Depends on the stable fetchQuote function
+
+  console.log("Render - isLoading:", isLoading, "quote:", quote, "error:", error);
 
   return (
     <QuoteContainer layout>
@@ -183,7 +195,7 @@ const MotivationalQuote = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        {/* Simplified Render Logic: Show loader first, then quote or error */}
+        {/* Render Logic prioritizing loading state */}
         {isLoading ? (
           <LoadingIndicator>
             <FaSpinner />
