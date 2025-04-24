@@ -1,8 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 import { ThemeProvider } from "styled-components";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import WorkoutGenerator from "./components/workout/WorkoutGenerator";
+import WaterIntakeTracker from "./components/hydration/WaterIntakeTracker";
 import { ThemeProvider as CustomThemeProvider } from "./context/ThemeContext";
+import { lightTheme, darkTheme } from './theme';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -28,34 +31,16 @@ const Subtitle = styled.p`
   opacity: 0.8;
 `;
 
-const theme = {
-  light: {
-    background: "#FFFFFF",
-    text: "#000000",
-    cardBackground: "#F8F9FA",
-    accent: "#FF4500",
-    border: "#FF4500",
-  },
-  dark: {
-    background: "#000000",
-    text: "#FFFFFF",
-    cardBackground: "#1E1E1E",
-    accent: "#FF4500",
-    border: "#FF4500",
-  },
-};
-
 function App() {
   return (
     <CustomThemeProvider>
-      <ThemeProvider theme={theme}>
-        <AppContainer>
-          <Header>
-            <Title>FitMe</Title>
-            <Subtitle>Your Personal Fitness & Wellness Tracker</Subtitle>
-          </Header>
-          <WorkoutGenerator />
-        </AppContainer>
+      <ThemeProvider theme={lightTheme}>
+        <Router>
+          <Routes>
+            <Route path="/" element={<WorkoutGenerator />} />
+            <Route path="/hydration" element={<WaterIntakeTracker />} />
+          </Routes>
+        </Router>
       </ThemeProvider>
     </CustomThemeProvider>
   );
