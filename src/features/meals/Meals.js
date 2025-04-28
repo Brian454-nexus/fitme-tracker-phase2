@@ -8,14 +8,17 @@ import {
   FaSpinner,
   FaExclamationTriangle,
   FaCalendarAlt,
+  FaAppleAlt,
+  FaCarrot,
 } from "react-icons/fa";
 import LogMealModal from "./LogMealModal"; // Import the modal
 import ThemeToggle from "../../components/ThemeToggle";
 import { useTheme } from "../../context/ThemeContext";
+import StylishHeader from "../../components/ui/StylishHeader";
 import { lightTheme, darkTheme } from "../../theme";
 import { fetchMeals } from "../../services/apiService";
 
-// Debounce Hook (optional but recommended for search)
+// Debounce Hook with faster response time
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -52,21 +55,11 @@ const MealsContainer = styled.div`
   color: ${(props) => props.theme.text};
 `;
 
-const Header = styled.div`
-  text-align: center;
-  margin-bottom: 3rem;
-`;
+// Removed unused styled component: Header;
 
-const Title = styled.h1`
-  font-size: 2.8rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-`;
+// Removed unused styled component: Title;
 
-const Subtitle = styled.p`
-  opacity: 0.7;
-  font-size: 1.1rem;
-`;
+// Removed unused styled component: Subtitle;
 
 const SummaryAndSearch = styled.div`
   display: grid;
@@ -86,6 +79,7 @@ const DailySummaryCard = styled(motion.div)`
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid ${(props) => props.theme.border};
+  position: relative;
 `;
 
 const SummaryTitle = styled.h2`
@@ -156,6 +150,39 @@ const NutritionItem = styled.div`
     font-weight: 600;
     margin-bottom: 0.2rem;
     color: ${(props) => props.theme.accent};
+  }
+`;
+
+const ActionButtonsContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  gap: 0.5rem;
+`;
+
+const ActionButton = styled(motion.button)`
+  background: ${props => props.danger ? 'rgba(220, 53, 69, 0.1)' : 'rgba(0, 123, 255, 0.1)'};
+  color: ${props => props.danger ? '#dc3545' : '#0d6efd'};
+  border: 1px solid ${props => props.danger ? 'rgba(220, 53, 69, 0.2)' : 'rgba(0, 123, 255, 0.2)'};
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${props => props.danger ? 'rgba(220, 53, 69, 0.2)' : 'rgba(0, 123, 255, 0.2)'};
+    transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -278,51 +305,163 @@ const RecipeGrid = styled(motion.div)`
 `;
 
 const RecipeCard = styled(motion.div)`
-  background: ${(props) => props.theme.cardBackground};
-  border-radius: 1rem;
+  background: ${(props) => 
+    props.theme.isDark 
+      ? 'rgba(30, 30, 35, 0.8)' 
+      : 'rgba(255, 255, 255, 0.8)'
+  };
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 1.2rem;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid ${(props) => props.theme.border};
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid ${(props) => 
+    props.theme.isDark 
+      ? 'rgba(255, 255, 255, 0.1)' 
+      : 'rgba(0, 0, 0, 0.05)'
+  };
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    
+    &::before {
+      opacity: 1;
+    }
   }
 `;
 
 const RecipeImage = styled.img`
   width: 100%;
-  height: 200px;
+  height: 220px;
   object-fit: cover;
   display: block;
+  transition: transform 0.6s ease, filter 0.6s ease;
+  position: relative;
+  z-index: 0;
+  
+  ${RecipeCard}:hover & {
+    transform: scale(1.05);
+    filter: brightness(1.1) contrast(1.1);
+  }
 `;
 
 const RecipeInfo = styled.div`
-  padding: 1rem;
+  padding: 1.2rem;
+  position: relative;
+  z-index: 2;
+  background: ${props => 
+    props.theme.isDark 
+      ? 'linear-gradient(to top, rgba(20, 20, 25, 0.9), rgba(20, 20, 25, 0.7))' 
+      : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7))'
+  };
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-top: 1px solid ${props => 
+    props.theme.isDark 
+      ? 'rgba(255, 255, 255, 0.1)' 
+      : 'rgba(0, 0, 0, 0.05)'
+  };
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  
+  ${RecipeCard}:hover & {
+    transform: translateY(-5px);
+  }
 `;
 
 const RecipeTitle = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: ${props => props.theme.accent};
+  letter-spacing: 0.5px;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: ${props => props.theme.accent};
+    transition: width 0.3s ease;
+  }
+  
+  ${RecipeCard}:hover &::after {
+    width: 60px;
+  }
 `;
 
 const RecipeTags = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-size: 0.8rem;
-  opacity: 0.7;
+  margin-top: 0.8rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  
+  ${RecipeCard}:hover & {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   span {
-    background-color: ${(props) => props.theme.border};
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.3rem;
+    background: ${props => 
+      props.theme.isDark 
+        ? 'rgba(80, 80, 100, 0.3)' 
+        : 'rgba(240, 240, 250, 0.7)'
+    };
+    padding: 0.3rem 0.7rem;
+    border-radius: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid ${props => 
+      props.theme.isDark 
+        ? 'rgba(255, 255, 255, 0.1)' 
+        : 'rgba(0, 0, 0, 0.05)'
+    };
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    svg {
+      color: ${props => props.theme.accent};
+    }
   }
 `;
 
@@ -352,8 +491,8 @@ const Meals = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMealForModal, setSelectedMealForModal] = useState(null);
 
-  // Debounced search term
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  // Debounced search term with faster response time
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   // Fetch Categories
   useEffect(() => {
@@ -390,67 +529,46 @@ const Meals = () => {
     fetchRandomMeal();
   }, []);
 
-  // API Call Logic using useCallback
+  // Optimized API Call Logic using useCallback
   const fetchMealsData = useCallback(async () => {
-    // Don't search if category is selected and search term is empty
-    if (selectedCategory && !debouncedSearchTerm) {
-      return; // Or fetch by category? Let's stick to explicit actions for now.
-    }
-
-    // Don't search if search term is too short (or empty) and no category selected
-    if (!selectedCategory && debouncedSearchTerm.length < 3) {
-      if (debouncedSearchTerm.length === 0) {
-        // Maybe fetch random again or clear results? Fetch random for now.
-        try {
-          setIsLoading(true);
-          setError(null);
-          const data = await fetchMeals({ type: "random" });
-          setMeals(data.meals || []);
-        } catch (err) {
-          setError("Could not fetch meals.");
-          setMeals([]);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setMeals([]); // Clear results for short terms
-      }
-      return;
-    }
-
+    // Set loading state immediately for better UX
     setIsLoading(true);
     setError(null);
-
+    
     try {
       let data;
-
-      if (selectedCategory && !debouncedSearchTerm) {
-        // Fetch by category if search is empty
+      
+      // Case 1: Category selected
+      if (selectedCategory) {
         data = await fetchMeals({
           type: "category",
           query: selectedCategory,
         });
-      } else {
-        // Prioritize search term
+      } 
+      // Case 2: Search term provided (at least 2 chars)
+      else if (debouncedSearchTerm && debouncedSearchTerm.length >= 2) {
         data = await fetchMeals({
           type: "search",
           query: debouncedSearchTerm,
         });
+      } 
+      // Case 3: No search or category - fetch random
+      else {
+        data = await fetchMeals({ type: "random" });
       }
 
-      // Handle the response based on the query type
-      if (selectedCategory && !debouncedSearchTerm) {
-        if (data && data.meals) {
-          setMeals(data.meals);
-        } else {
-          setMeals([]);
-          setError(`No meals found for category: ${selectedCategory}`);
-        }
+      // Process results
+      if (data && data.meals && data.meals.length > 0) {
+        setMeals(data.meals);
+        setError(null);
       } else {
-        // search or random
-        setMeals(data.meals || []);
-        if (!data.meals) {
+        setMeals([]);
+        if (selectedCategory) {
+          setError(`No meals found for category: ${selectedCategory}`);
+        } else if (debouncedSearchTerm) {
           setError(`No meals found for "${debouncedSearchTerm}".`);
+        } else {
+          setError("Could not fetch meal suggestions. Please try again.");
         }
       }
     } catch (err) {
@@ -462,35 +580,15 @@ const Meals = () => {
     }
   }, [debouncedSearchTerm, selectedCategory]);
 
-  // Effect for Search Term / Category Change
+  // Optimized Effect for Search Term / Category Change
   useEffect(() => {
-    // Trigger fetch when debounced term or category changes
-    // Avoid initial fetch if search is empty and no category selected
-    if (debouncedSearchTerm || selectedCategory) {
-      fetchMealsData();
-    } else if (
-      !debouncedSearchTerm &&
-      !selectedCategory &&
-      meals.length === 0 // Check if meals array is empty
-    ) {
-      // If everything is empty and no meals loaded yet, fetch random
-      const fetchRandom = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const data = await fetchMeals({ type: "random" });
-          setMeals(data.meals || []);
-        } catch (err) {
-          setError("Could not fetch meals.");
-          setMeals([]);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchRandom();
-    }
-    // Using useMemo to avoid unnecessary re-renders
-  }, [debouncedSearchTerm, selectedCategory, fetchMealsData, meals.length]);
+    // Always fetch data when search term or category changes
+    // The fetchMealsData function handles all the logic
+    fetchMealsData();
+    
+    // No need for additional conditions - the fetchMealsData function
+    // will handle empty states and fetch random meals when needed
+  }, [debouncedSearchTerm, selectedCategory, fetchMealsData]);
 
   // Use memoization to optimize performance
   const memoizedMeals = useMemo(() => {
@@ -572,15 +670,44 @@ const Meals = () => {
     setIsModalOpen(false);
     setSelectedMealForModal(null);
   };
+  
+  // Function to clear all meals logged today
+  const handleClearTodaysMeals = () => {
+    const today = new Date().toISOString().split("T")[0];
+    const updatedMeals = loggedMeals.filter(meal => meal.date !== today);
+    setLoggedMeals(updatedMeals);
+  };
+  
+  // Function to delete the last meal logged
+  const handleDeleteLastMeal = () => {
+    const today = new Date().toISOString().split("T")[0];
+    const todayMeals = loggedMeals.filter(meal => meal.date === today);
+    
+    if (todayMeals.length === 0) return;
+    
+    // Find the most recent meal by timestamp
+    const mostRecentMeal = todayMeals.reduce((latest, current) => 
+      (current.logTimestamp > latest.logTimestamp) ? current : latest, todayMeals[0]);
+    
+    // Remove this meal from the logged meals
+    const updatedMeals = loggedMeals.filter(meal => meal.logTimestamp !== mostRecentMeal.logTimestamp);
+    setLoggedMeals(updatedMeals);
+  };
 
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <MealsContainer>
         <ThemeToggle toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
-        <Header>
-          <Title>Meal Discovery</Title>
-          <Subtitle>Find delicious recipes and track your nutrition</Subtitle>
-        </Header>
+        <StylishHeader 
+          title="*Meal* Discovery" 
+          subtitle="Find delicious recipes and track your nutrition goals"
+        >
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px', gap: '15px' }}>
+            <FaAppleAlt style={{ color: '#48bb78', fontSize: '1.5rem' }} />
+            <FaCarrot style={{ color: '#ed8936', fontSize: '1.5rem' }} />
+            <FaUtensils style={{ color: '#4299e1', fontSize: '1.5rem' }} />
+          </div>
+        </StylishHeader>
 
         <SummaryAndSearch>
           {/* Daily Summary */}
@@ -619,6 +746,27 @@ const Meals = () => {
                 <span>{totalFatsToday}g</span>Fats
               </NutritionItem>
             </NutritionBreakdown>
+            
+            {/* Action buttons for managing logged meals */}
+            <ActionButtonsContainer>
+              <ActionButton
+                onClick={handleDeleteLastMeal}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                disabled={dailyNutritionTotals.calories === 0}
+              >
+                Delete Last Meal
+              </ActionButton>
+              <ActionButton
+                danger
+                onClick={handleClearTodaysMeals}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                disabled={dailyNutritionTotals.calories === 0}
+              >
+                Clear Today's Log
+              </ActionButton>
+            </ActionButtonsContainer>
           </DailySummaryCard>
 
           {/* Search and Filters */}
@@ -676,15 +824,15 @@ const Meals = () => {
             <RecipeGrid
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ staggerChildren: 0.1 }}
+              transition={{ duration: 0.3 }} // Faster transition
             >
               {memoizedMeals.map((meal) => (
                 <RecipeCard
                   key={meal.idMeal}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
+                  whileHover={{ y: -8, scale: 1.02 }} // Use whileHover instead of CSS for better performance
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }} // Faster transition
                   onClick={() => handleSelectMeal(meal)}
                   role="button"
                   tabIndex={0}
