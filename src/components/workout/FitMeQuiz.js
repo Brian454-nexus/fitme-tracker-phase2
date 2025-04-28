@@ -266,9 +266,9 @@ const questions = [
     id: 5,
     question: "What is your body type?",
     options: [
-      { text: "Slim", image: "/images/body/slim.png", value: "slim" },
-      { text: "Average", image: "/images/body/average.png", value: "average" },
-      { text: "Heavy", image: "/images/body/heavy.png", value: "heavy" },
+      { text: "Slim", value: "slim" },
+      { text: "Average", value: "average" },
+      { text: "Heavy", value: "heavy" },
     ],
     layout: "vertical",
     size: "medium",
@@ -279,17 +279,14 @@ const questions = [
     options: [
       {
         text: "Lose Weight",
-        image: "/images/goals/weight-loss.png",
         value: "lose_weight",
       },
       {
         text: "Gain Muscle Mass",
-        image: "/images/goals/muscle-gain.png",
         value: "gain_muscle",
       },
       {
         text: "Get Shredded",
-        image: "/images/goals/shredded.png",
         value: "get_shredded",
       },
     ],
@@ -512,7 +509,7 @@ const GetPlanButton = styled(motion.button)`
   }
 `;
 
-const QuizSummary = ({ answers, questions, measurementValues }) => {
+const QuizSummary = ({ answers, questions, measurementValues, onComplete }) => {
   const getAnswer = (questionId) => {
     const questionIndex = questions.findIndex((q) => q.id === questionId);
     if (questionIndex === -1 || !answers[questionIndex]) return "N/A";
@@ -588,17 +585,17 @@ const QuizSummary = ({ answers, questions, measurementValues }) => {
       </GoalsSection>
 
       <GetPlanButton
-        onClick={() => alert("Plan generation coming soon!")}
+        onClick={onComplete}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        Get my plan <FiArrowRight />
+        Generate Workouts <FiArrowRight />
       </GetPlanButton>
     </SummaryContainer>
   );
 };
 
-const FitMeQuiz = () => {
+const FitMeQuiz = ({ onComplete }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
@@ -680,6 +677,7 @@ const FitMeQuiz = () => {
         answers={answers}
         questions={questions}
         measurementValues={measurementValues}
+        onComplete={onComplete}
       />
     );
   }
