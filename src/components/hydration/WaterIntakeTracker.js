@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import {
@@ -11,6 +11,9 @@ import {
   FaGlassWhiskey,
   FaHashtag,
 } from "react-icons/fa";
+import ThemeToggle from "../ThemeToggle";
+import { useTheme } from "../../context/ThemeContext";
+import { lightTheme, darkTheme } from "../../theme";
 
 const CUP_VOLUME = 250;
 
@@ -354,6 +357,7 @@ const WaterIntakeTracker = () => {
   const [entries, setEntries] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [intakeHistory, setIntakeHistory] = useState({});
+  const { isDarkMode, toggleTheme } = useTheme();
 
   // Load data from localStorage for selected date
   useEffect(() => {
@@ -451,11 +455,13 @@ const WaterIntakeTracker = () => {
   const remainingIntake = Math.max(0, currentDailyGoal - totalIntake);
 
   return (
-    <Container>
-      <Header>
-        <Title>Current Hydration</Title>
-        <Subtitle>Track your daily water intake</Subtitle>
-      </Header>
+    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+      <Container>
+        <ThemeToggle toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
+        <Header>
+          <Title>Current Hydration</Title>
+          <Subtitle>Track your daily water intake</Subtitle>
+        </Header>
 
       <MainContent>
         <CircularProgressSection>
@@ -624,6 +630,7 @@ const WaterIntakeTracker = () => {
         )}
       </AnimatePresence>
     </Container>
+    </ThemeProvider>
   );
 };
 

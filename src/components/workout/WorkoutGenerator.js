@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import styled, { ThemeProvider } from "styled-components";
 import { motion } from "framer-motion";
-import axios from "axios";
 import WorkoutFilters from "./WorkoutFilters";
 import { filterWorkouts, sortWorkouts } from "../../utils/workoutUtils";
 import WorkoutStats from "./WorkoutStats";
@@ -11,26 +10,21 @@ import FitMeQuiz from "./FitMeQuiz";
 import ThemeToggle from "../ThemeToggle";
 import { useTheme } from "../../context/ThemeContext";
 import MotivationalQuote from "../quotes/MotivationalQuote";
+import { lightTheme, darkTheme } from "../../theme";
+import { fetchExercises } from "../../services/apiService";
 
-const lightTheme = {
-  primary: "#FF4500",
-  secondary: "#000000",
-  accent: "#FF4500",
-  background: "#FFFFFF",
-  text: "#333333",
-  cardBackground: "#F8F9FA",
-  border: "#E0E0E0",
-};
-
-const darkTheme = {
-  primary: "#FF4500",
-  secondary: "#FFFFFF",
-  accent: "#FF4500",
-  background: "#121212",
-  text: "#FFFFFF",
-  cardBackground: "#1E1E1E",
-  border: "#333333",
-};
+// Screen reader only class
+const SROnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+`;
 
 const Container = styled.div`
   padding: 2rem;
@@ -108,15 +102,17 @@ const LoadingSpinner = styled.div`
   align-items: center;
   height: 200px;
   color: ${(props) => props.theme.text};
+  font-weight: 500;
 `;
 
 const ErrorMessage = styled.div`
-  color: #ff4444;
+  color: ${(props) => props.theme.error};
   text-align: center;
   padding: 1rem;
   background: rgba(255, 68, 68, 0.1);
   border-radius: 8px;
   margin: 1rem 0;
+  font-weight: 500;
 `;
 
 const ButtonContainer = styled.div`
@@ -178,19 +174,15 @@ const WorkoutGenerator = () => {
   const [progress, setProgress] = useState(0);
   const { isDarkMode, toggleTheme } = useTheme();
 
-  const fetchWorkouts = async (muscle) => {
+  const fetchWorkouts = useCallback(async (muscle) => {
     setLoading(true);
     setError(null);
+    setProgress(20); // Start progress
+    
     try {
-      const response = await axios.get(
-        `https://api.api-ninjas.com/v1/exercises?muscle=${muscle}`,
-        {
-          headers: {
-            "X-Api-Key": process.env.REACT_APP_API_NINJAS_KEY,
-          },
-        }
-      );
-      setWorkouts(response.data);
+      // Use the API service instead of direct axios call
+      const data = await fetchExercises(muscle);
+      setWorkouts(data);
       setProgress(100);
     } catch (err) {
       setError("Failed to fetch workouts. Please try again later.");
@@ -198,7 +190,7 @@ const WorkoutGenerator = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleMuscleSelect = (muscle) => {
     setSelectedMuscle(muscle);
@@ -206,8 +198,16 @@ const WorkoutGenerator = () => {
     fetchWorkouts(muscle.value);
   };
 
-  const filteredWorkouts = filterWorkouts(workouts, filters);
-  const sortedWorkouts = sortWorkouts(filteredWorkouts, sortBy);
+  // Use memoization to avoid unnecessary recalculations
+  const filteredWorkouts = useMemo(() => 
+    filterWorkouts(workouts, filters), 
+    [workouts, filters]
+  );
+  
+  const sortedWorkouts = useMemo(() => 
+    sortWorkouts(filteredWorkouts, sortBy), 
+    [filteredWorkouts, sortBy]
+  );
 
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
@@ -222,6 +222,8 @@ const WorkoutGenerator = () => {
             onClick={() => setShowQuiz(!showQuiz)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label={showQuiz ? "Hide fitness quiz" : "Take fitness quiz"}
+            aria-expanded={showQuiz}
           >
             {showQuiz ? "Hide Quiz" : "Take FitMe Quiz"}
           </QuizButton>
@@ -241,6 +243,16 @@ const WorkoutGenerator = () => {
                   }
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selectedMuscle?.value === muscle.value}
+                  aria-label={`Select ${muscle.name} muscle group`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleMuscleSelect(muscle);
+                    }
+                  }}
                 >
                   <MuscleTitle>{muscle.name}</MuscleTitle>
                   <ModelContainer>
@@ -271,9 +283,12 @@ const WorkoutGenerator = () => {
                 />
 
                 {loading ? (
-                  <LoadingSpinner>Loading workouts...</LoadingSpinner>
+                  <LoadingSpinner role="status" aria-live="polite">
+                    <SROnly>Loading workouts, please wait...</SROnly>
+                    Loading workouts...
+                  </LoadingSpinner>
                 ) : error ? (
-                  <ErrorMessage>{error}</ErrorMessage>
+                  <ErrorMessage role="alert" aria-live="assertive">{error}</ErrorMessage>
                 ) : (
                   <WorkoutList>
                     {sortedWorkouts.map((workout) => (

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
-import styled, { keyframes } from "styled-components";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import styled, { keyframes, ThemeProvider } from "styled-components";
 import { motion } from "framer-motion";
-import axios from "axios";
 import {
   FaSearch,
   FaUtensils,
@@ -10,7 +9,11 @@ import {
   FaExclamationTriangle,
   FaCalendarAlt,
 } from "react-icons/fa";
-import LogMealModal from './LogMealModal'; // Import the modal
+import LogMealModal from "./LogMealModal"; // Import the modal
+import ThemeToggle from "../../components/ThemeToggle";
+import { useTheme } from "../../context/ThemeContext";
+import { lightTheme, darkTheme } from "../../theme";
+import { fetchMeals } from "../../services/apiService";
 
 // Debounce Hook (optional but recommended for search)
 function useDebounce(value, delay) {
@@ -26,10 +29,22 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-// API Base URL
-const MEALDB_API_BASE = "https://www.themealdb.com/api/json/v1/1/";
+// API calls are now handled through the apiService
 
 // #region Styled Components
+// Screen reader only class
+const SROnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+`;
+
 const MealsContainer = styled.div`
   padding: 2rem;
   max-width: 1400px;
@@ -207,7 +222,11 @@ const SelectDropdown = styled.select`
   font-size: 0.9rem;
   cursor: pointer;
   &:focus {
-    outline: none;
+    outline: 2px solid ${(props) => props.theme.accent};
+    outline-offset: 2px;
+    border-color: ${(props) => props.theme.accent};
+  }
+  &:hover {
     border-color: ${(props) => props.theme.accent};
   }
 `;
@@ -321,6 +340,7 @@ const Meals = () => {
   const [meals, setMeals] = useState([]); // API results
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isDarkMode, toggleTheme } = useTheme();
 
   // State for manually logged meals
   const [loggedMeals, setLoggedMeals] = useState(() => {
@@ -337,28 +357,28 @@ const Meals = () => {
 
   // Fetch Categories
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategoriesData = async () => {
       try {
-        const response = await axios.get(`${MEALDB_API_BASE}list.php?c=list`);
-        if (response.data && response.data.meals) {
-          setCategories(response.data.meals.map((cat) => cat.strCategory));
+        const data = await fetchMeals({ type: "categories" });
+        if (data && data.meals) {
+          setCategories(data.meals.map((cat) => cat.strCategory));
         }
       } catch (err) {
         console.error("Error fetching categories:", err);
         // Handle error silently or show a small indicator
       }
     };
-    fetchCategories();
+    fetchCategoriesData();
   }, []);
 
   // Fetch Random Meal on Mount
   useEffect(() => {
-    const fetchRandom = async () => {
+    const fetchRandomMeal = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${MEALDB_API_BASE}random.php`);
-        setMeals(response.data.meals || []);
+        const data = await fetchMeals({ type: "random" });
+        setMeals(data.meals || []);
       } catch (err) {
         console.error("Error fetching random meal:", err);
         setError("Could not fetch a meal suggestion. Please try again later.");
@@ -367,15 +387,16 @@ const Meals = () => {
         setIsLoading(false);
       }
     };
-    fetchRandom();
+    fetchRandomMeal();
   }, []);
 
   // API Call Logic using useCallback
-  const fetchMeals = useCallback(async () => {
+  const fetchMealsData = useCallback(async () => {
     // Don't search if category is selected and search term is empty
     if (selectedCategory && !debouncedSearchTerm) {
       return; // Or fetch by category? Let's stick to explicit actions for now.
     }
+
     // Don't search if search term is too short (or empty) and no category selected
     if (!selectedCategory && debouncedSearchTerm.length < 3) {
       if (debouncedSearchTerm.length === 0) {
@@ -383,8 +404,8 @@ const Meals = () => {
         try {
           setIsLoading(true);
           setError(null);
-          const response = await axios.get(`${MEALDB_API_BASE}random.php`);
-          setMeals(response.data.meals || []);
+          const data = await fetchMeals({ type: "random" });
+          setMeals(data.meals || []);
         } catch (err) {
           setError("Could not fetch meals.");
           setMeals([]);
@@ -399,32 +420,36 @@ const Meals = () => {
 
     setIsLoading(true);
     setError(null);
-    let url = "";
-
-    if (selectedCategory && !debouncedSearchTerm) {
-      // Fetch by category if search is empty
-      url = `${MEALDB_API_BASE}filter.php?c=${selectedCategory}`;
-    } else {
-      // Prioritize search term
-      url = `${MEALDB_API_BASE}search.php?s=${debouncedSearchTerm}`;
-    }
 
     try {
-      const response = await axios.get(url);
-      // The filter endpoint returns a different structure
-      if (url.includes("filter.php")) {
-        if (response.data && response.data.meals) {
-          // Filter endpoint only gives name, thumb, id. Need to fetch details maybe?
-          // For now, just display what we have.
-          setMeals(response.data.meals);
+      let data;
+
+      if (selectedCategory && !debouncedSearchTerm) {
+        // Fetch by category if search is empty
+        data = await fetchMeals({
+          type: "category",
+          query: selectedCategory,
+        });
+      } else {
+        // Prioritize search term
+        data = await fetchMeals({
+          type: "search",
+          query: debouncedSearchTerm,
+        });
+      }
+
+      // Handle the response based on the query type
+      if (selectedCategory && !debouncedSearchTerm) {
+        if (data && data.meals) {
+          setMeals(data.meals);
         } else {
           setMeals([]);
           setError(`No meals found for category: ${selectedCategory}`);
         }
       } else {
-        // search.php or random.php
-        setMeals(response.data.meals || []);
-        if (!response.data.meals) {
+        // search or random
+        setMeals(data.meals || []);
+        if (!data.meals) {
           setError(`No meals found for "${debouncedSearchTerm}".`);
         }
       }
@@ -442,7 +467,7 @@ const Meals = () => {
     // Trigger fetch when debounced term or category changes
     // Avoid initial fetch if search is empty and no category selected
     if (debouncedSearchTerm || selectedCategory) {
-        fetchMeals();
+      fetchMealsData();
     } else if (
       !debouncedSearchTerm &&
       !selectedCategory &&
@@ -453,44 +478,67 @@ const Meals = () => {
         setIsLoading(true);
         setError(null);
         try {
-          const response = await axios.get(`${MEALDB_API_BASE}random.php`);
-          setMeals(response.data.meals || []);
-        } catch (err) { setError("Could not fetch meals."); setMeals([]); }
-        finally { setIsLoading(false); }
+          const data = await fetchMeals({ type: "random" });
+          setMeals(data.meals || []);
+        } catch (err) {
+          setError("Could not fetch meals.");
+          setMeals([]);
+        } finally {
+          setIsLoading(false);
+        }
       };
       fetchRandom();
     }
-    // Added meals.length to dependency array
-  }, [debouncedSearchTerm, selectedCategory, fetchMeals, meals.length]); 
+    // Using useMemo to avoid unnecessary re-renders
+  }, [debouncedSearchTerm, selectedCategory, fetchMealsData, meals.length]);
+
+  // Use memoization to optimize performance
+  const memoizedMeals = useMemo(() => {
+    // This prevents unnecessary re-renders when other state changes
+    return meals;
+  }, [meals]);
+
+  // Calculate daily nutrition totals with memoization
+  const dailyNutritionTotals = useMemo(() => {
+    // Only recalculate when loggedMeals changes
+    const today = new Date().toISOString().split("T")[0];
+    const todayMeals = loggedMeals.filter((meal) => meal.date === today);
+
+    return {
+      calories: todayMeals.reduce(
+        (sum, meal) => sum + parseInt(meal.calories || 0),
+        0
+      ),
+      protein: todayMeals.reduce(
+        (sum, meal) => sum + parseInt(meal.protein || 0),
+        0
+      ),
+      carbs: todayMeals.reduce(
+        (sum, meal) => sum + parseInt(meal.carbs || 0),
+        0
+      ),
+      fats: todayMeals.reduce((sum, meal) => sum + parseInt(meal.fats || 0), 0),
+    };
+  }, [loggedMeals]);
 
   // NEW: useEffect to save loggedMeals to localStorage
   useEffect(() => {
     try {
-        localStorage.setItem("loggedMealsData", JSON.stringify(loggedMeals));
+      localStorage.setItem("loggedMealsData", JSON.stringify(loggedMeals));
     } catch (error) {
-        console.error("Error saving logged meals to localStorage:", error);
+      console.error("Error saving logged meals to localStorage:", error);
     }
   }, [loggedMeals]);
 
-  // --- Daily Summary Calculations (using loggedMeals) ---
+  // --- Daily Summary Calculations (using memoized values) ---
   const today = new Date().toISOString().split("T")[0];
-  const todayLoggedMeals = loggedMeals.filter((meal) => meal.date === today);
-  const totalCaloriesToday = todayLoggedMeals.reduce(
-    (sum, meal) => sum + parseInt(meal.calories || 0),
-    0
-  );
-  const totalProteinToday = todayLoggedMeals.reduce(
-    (sum, meal) => sum + parseInt(meal.protein || 0),
-    0
-  );
-  const totalCarbsToday = todayLoggedMeals.reduce(
-    (sum, meal) => sum + parseInt(meal.carbs || 0),
-    0
-  );
-  const totalFatsToday = todayLoggedMeals.reduce(
-    (sum, meal) => sum + parseInt(meal.fats || 0),
-    0
-  );
+  // We don't need todayLoggedMeals anymore since we're using memoized values
+
+  // Use the memoized nutrition totals
+  const totalCaloriesToday = dailyNutritionTotals.calories;
+  const totalProteinToday = dailyNutritionTotals.protein;
+  const totalCarbsToday = dailyNutritionTotals.carbs;
+  const totalFatsToday = dailyNutritionTotals.fats;
   const calorieProgress = Math.min(
     dailyCalorieGoal > 0 ? (totalCaloriesToday / dailyCalorieGoal) * 100 : 0,
     100
@@ -515,7 +563,7 @@ const Meals = () => {
   // NEW: Log Meal Handler (passed to modal)
   const handleLogMeal = (loggedData) => {
     console.log("Logging Meal Data:", loggedData);
-    setLoggedMeals(prevLoggedMeals => [...prevLoggedMeals, loggedData]);
+    setLoggedMeals((prevLoggedMeals) => [...prevLoggedMeals, loggedData]);
     setIsModalOpen(false);
     setSelectedMealForModal(null);
     // Optionally: Show a success message/toast
@@ -524,150 +572,167 @@ const Meals = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedMealForModal(null);
-  }
+  };
 
   return (
-    <MealsContainer>
-      <Header>
-        <Title>Meal Discovery</Title>
-        <Subtitle>Find delicious recipes and track your nutrition</Subtitle>
-      </Header>
+    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+      <MealsContainer>
+        <ThemeToggle toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
+        <Header>
+          <Title>Meal Discovery</Title>
+          <Subtitle>Find delicious recipes and track your nutrition</Subtitle>
+        </Header>
 
-      <SummaryAndSearch>
-        {/* Daily Summary */}
-        <DailySummaryCard>
-          <SummaryTitle>Today's Nutrition</SummaryTitle>
-          <GoalInputContainer>
-            <label htmlFor="calorieGoal">Goal:</label>
-            <input
-              id="calorieGoal"
-              type="number"
-              value={dailyCalorieGoal}
-              onChange={handleCalorieGoalChange}
-              min="0"
-              step="50"
-            />
-            <span>kcal</span>
-          </GoalInputContainer>
-          <ProgressBarContainer>
-            <ProgressBarFill
-              initial={{ width: 0 }}
-              animate={{ width: `${calorieProgress}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </ProgressBarContainer>
-          <CalorieText>
-            {totalCaloriesToday} / {dailyCalorieGoal} kcal consumed
-          </CalorieText>
-          <NutritionBreakdown>
-            <NutritionItem>
-              <span>{totalProteinToday}g</span>Protein
-            </NutritionItem>
-            <NutritionItem>
-              <span>{totalCarbsToday}g</span>Carbs
-            </NutritionItem>
-            <NutritionItem>
-              <span>{totalFatsToday}g</span>Fats
-            </NutritionItem>
-          </NutritionBreakdown>
-        </DailySummaryCard>
+        <SummaryAndSearch>
+          {/* Daily Summary */}
+          <DailySummaryCard>
+            <SummaryTitle>Today's Nutrition</SummaryTitle>
+            <GoalInputContainer>
+              <label htmlFor="calorieGoal">Goal:</label>
+              <input
+                id="calorieGoal"
+                type="number"
+                value={dailyCalorieGoal}
+                onChange={handleCalorieGoalChange}
+                min="0"
+                step="50"
+              />
+              <span>kcal</span>
+            </GoalInputContainer>
+            <ProgressBarContainer>
+              <ProgressBarFill
+                initial={{ width: 0 }}
+                animate={{ width: `${calorieProgress}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </ProgressBarContainer>
+            <CalorieText>
+              {totalCaloriesToday} / {dailyCalorieGoal} kcal consumed
+            </CalorieText>
+            <NutritionBreakdown>
+              <NutritionItem>
+                <span>{totalProteinToday}g</span>Protein
+              </NutritionItem>
+              <NutritionItem>
+                <span>{totalCarbsToday}g</span>Carbs
+              </NutritionItem>
+              <NutritionItem>
+                <span>{totalFatsToday}g</span>Fats
+              </NutritionItem>
+            </NutritionBreakdown>
+          </DailySummaryCard>
 
-        {/* Search and Filters */}
-        <SearchSection>
-          <SearchBarContainer>
-            <FaSearch />
-            <SearchInput
-          type="text"
-              placeholder="Search recipes by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-          </SearchBarContainer>
-          <FilterContainer>
-            <label htmlFor="categoryFilter">
-              <FaTags /> Category:
-            </label>
-            <SelectDropdown
-              id="categoryFilter"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                // Optionally clear search term when category changes?
-                // setSearchTerm("");
-              }}
-            >
-              <option value="">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </SelectDropdown>
-            {/* Add more filters here (e.g., Area/Origin) */}
-          </FilterContainer>
-        </SearchSection>
-      </SummaryAndSearch>
-
-      {/* Recipe Display */}
-      <ResultsContainer>
-        {isLoading ? (
-          <LoadingSpinner>
-            <FaSpinner />
-          </LoadingSpinner>
-        ) : error ? (
-          <ErrorMessage>
-            <FaExclamationTriangle />
-            {error}
-          </ErrorMessage>
-        ) : meals.length > 0 ? (
-          <RecipeGrid
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1 }}
-          >
-            {meals.map((meal) => (
-              <RecipeCard
-                key={meal.idMeal}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                onClick={() => handleSelectMeal(meal)}
+          {/* Search and Filters */}
+          <SearchSection>
+            <SearchBarContainer>
+              <FaSearch aria-hidden="true" />
+              <SearchInput
+                type="text"
+                placeholder="Search recipes by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label="Search recipes"
+                id="recipe-search"
+                autoComplete="off"
+              />
+            </SearchBarContainer>
+            <FilterContainer>
+              <label htmlFor="categoryFilter">
+                <FaTags /> Category:
+              </label>
+              <SelectDropdown
+                id="categoryFilter"
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  // Optionally clear search term when category changes?
+                  // setSearchTerm("");
+                }}
               >
-                <RecipeImage src={meal.strMealThumb} alt={meal.strMeal} />
-                <RecipeInfo>
-                  <RecipeTitle>{meal.strMeal}</RecipeTitle>
-                  {/* Display tags if available from search.php, not filter.php */}
-                  {meal.strCategory && meal.strArea && (
-                    <RecipeTags>
-                      <span>
-                        <FaUtensils /> {meal.strCategory}
-                      </span>
-                      <span>
-                        <FaCalendarAlt /> {meal.strArea}
-                      </span>
-                    </RecipeTags>
-                  )}
-                </RecipeInfo>
-              </RecipeCard>
-            ))}
-          </RecipeGrid>
-        ) : (
-          <ErrorMessage>
-            <FaUtensils /> No meals found. Try adjusting your search or filters.
-          </ErrorMessage>
-        )}
-      </ResultsContainer>
+                <option value="">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </SelectDropdown>
+              {/* Add more filters here (e.g., Area/Origin) */}
+            </FilterContainer>
+          </SearchSection>
+        </SummaryAndSearch>
 
-      {/* Render Modal Conditionally */}
-      {isModalOpen && selectedMealForModal && (
+        {/* Recipe Display */}
+        <ResultsContainer>
+          {isLoading ? (
+            <LoadingSpinner role="status" aria-live="polite">
+              <FaSpinner aria-hidden="true" />
+              <SROnly>Loading meals, please wait...</SROnly>
+            </LoadingSpinner>
+          ) : error ? (
+            <ErrorMessage role="alert" aria-live="assertive">
+              <FaExclamationTriangle aria-hidden="true" />
+              {error}
+            </ErrorMessage>
+          ) : memoizedMeals.length > 0 ? (
+            <RecipeGrid
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ staggerChildren: 0.1 }}
+            >
+              {memoizedMeals.map((meal) => (
+                <RecipeCard
+                  key={meal.idMeal}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => handleSelectMeal(meal)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View details for ${meal.strMeal}`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleSelectMeal(meal);
+                    }
+                  }}
+                >
+                  <RecipeImage src={meal.strMealThumb} alt={meal.strMeal} />
+                  <RecipeInfo>
+                    <RecipeTitle>{meal.strMeal}</RecipeTitle>
+                    {/* Display tags if available from search.php, not filter.php */}
+                    {meal.strCategory && meal.strArea && (
+                      <RecipeTags>
+                        <span>
+                          <FaUtensils /> {meal.strCategory}
+                        </span>
+                        <span>
+                          <FaCalendarAlt /> {meal.strArea}
+                        </span>
+                      </RecipeTags>
+                    )}
+                  </RecipeInfo>
+                </RecipeCard>
+              ))}
+            </RecipeGrid>
+          ) : (
+            <ErrorMessage>
+              <FaUtensils /> No meals found. Try adjusting your search or
+              filters.
+            </ErrorMessage>
+          )}
+        </ResultsContainer>
+
+        {/* Render Modal Conditionally */}
+        {isModalOpen && selectedMealForModal && (
           <LogMealModal
             meal={selectedMealForModal}
             onClose={handleCloseModal}
             onLogMeal={handleLogMeal}
           />
-      )}
-    </MealsContainer>
+        )}
+      </MealsContainer>
+    </ThemeProvider>
   );
 };
 
