@@ -204,5 +204,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 <div align="center">
   <p>Built with ❤️ by the FitMe Team</p>
-  <p>© 2023 FitMe Tracker. All rights reserved.</p>
+  <p>© 2025 FitMe Tracker. All rights reserved.</p>
 </div>
