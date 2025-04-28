@@ -531,8 +531,7 @@ const Meals = () => {
   }, [loggedMeals]);
 
   // --- Daily Summary Calculations (using memoized values) ---
-  const today = new Date().toISOString().split("T")[0];
-  // We don't need todayLoggedMeals anymore since we're using memoized values
+  // We're using the memoized nutrition totals instead of calculating them here
 
   // Use the memoized nutrition totals
   const totalCaloriesToday = dailyNutritionTotals.calories;
