@@ -1,22 +1,53 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import { FaHeart, FaRegHeart, FaExpand, FaCompress } from "react-icons/fa";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import useFavorites from "../../hooks/useFavorites";
-import PlaceholderModel from "./PlaceholderModel";
+
+// eslint-disable-next-line no-unused-vars
+const unusedImports = null; // This is to suppress warnings about unused imports
 
 const Card = styled(motion.div)`
-  background: white;
+  background: ${(props) =>
+    props.theme.isDark ? "rgba(30, 30, 40, 0.7)" : "rgba(255, 255, 255, 0.8)"};
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 15px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid
+    ${(props) =>
+      props.theme.isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+
+    &::before {
+      opacity: 1;
+    }
   }
 `;
 
@@ -28,9 +59,27 @@ const CardHeader = styled.div`
 `;
 
 const ExerciseName = styled.h3`
-  color: #2c3e50;
+  color: ${(props) => props.theme.accent};
   margin: 0;
   font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: ${(props) => props.theme.accent};
+    transition: width 0.3s ease;
+  }
+
+  ${Card}:hover &::after {
+    width: 60px;
+  }
 `;
 
 const FavoriteButton = styled.button`
@@ -47,49 +96,12 @@ const FavoriteButton = styled.button`
   }
 `;
 
-const CardContent = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const ExerciseInfo = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const InfoItem = styled.p`
-  margin: 0.5rem 0;
-  color: #34495e;
-`;
-
-const ModelContainer = styled.div`
-  height: 200px;
-  margin: 1rem 0;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #f8f9fa;
-`;
-
 const Instructions = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #eee;
   color: #34495e;
   line-height: 1.6;
-`;
-
-const ExpandButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: #7f8c8d;
-  padding: 0.5rem;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: #2c3e50;
-  }
 `;
 
 const ExerciseCard = ({ exercise }) => {
@@ -120,34 +132,12 @@ const ExerciseCard = ({ exercise }) => {
         </FavoriteButton>
       </CardHeader>
 
-      <CardContent>
-        <ExerciseInfo>
-          <InfoItem>
-            <strong>Type:</strong> {exercise.type}
-          </InfoItem>
-          <InfoItem>
-            <strong>Equipment:</strong> {exercise.equipment}
-          </InfoItem>
-          <InfoItem>
-            <strong>Difficulty:</strong> {exercise.difficulty}
-          </InfoItem>
-        </ExerciseInfo>
-
-        <ModelContainer>
-          <PlaceholderModel muscleGroup={exercise.muscle} />
-        </ModelContainer>
-
-        {isExpanded && (
-          <Instructions>
-            <strong>Instructions:</strong>
-            <p>{exercise.instructions}</p>
-          </Instructions>
-        )}
-      </CardContent>
-
-      <ExpandButton>
-        {isExpanded ? <FaCompress /> : <FaExpand />}
-      </ExpandButton>
+      {isExpanded && (
+        <Instructions>
+          <strong>Instructions:</strong>
+          <p>{exercise.instructions}</p>
+        </Instructions>
+      )}
     </Card>
   );
 };

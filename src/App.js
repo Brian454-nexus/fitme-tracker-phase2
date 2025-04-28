@@ -7,6 +7,8 @@ import Meals from "./features/meals/Meals";
 import { ThemeProvider as CustomThemeProvider } from "./context/ThemeContext";
 import { lightTheme } from "./theme";
 import Navigation from "./components/Navigation";
+import DailySummaryCard from "./components/summary/DailySummaryCard";
+import AmbientSoundButton from "./components/audio/AmbientSoundButton";
 import "./App.css";
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
             <Route path="/hydration" element={<WaterIntakeTracker />} />
             <Route path="/meals" element={<Meals />} />
           </Routes>
+          <DailySummaryCard />
+          <AmbientSoundButton />
         </BrowserRouter>
       </ThemeProvider>
     </CustomThemeProvider>
