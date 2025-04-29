@@ -232,7 +232,6 @@ const questions = [
     options: [
       { text: "Male", value: "male" },
       { text: "Female", value: "female" },
-      { text: "Other", value: "other" },
     ],
     layout: "vertical",
     size: "large",

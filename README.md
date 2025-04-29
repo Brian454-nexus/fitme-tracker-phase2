@@ -1,7 +1,7 @@
 # FitMe Tracker - Comprehensive Fitness & Wellness Platform
 
 <div align="center">
-  <img src="public/logo192.png" alt="FitMe Tracker Logo" width="120" />
+  <img src="/home/brian-terer/Downloads/fitme.jpg" alt="FitMe Tracker Logo" width="120" />
   <h3>Your All-in-One Fitness Companion</h3>
 </div>
 
@@ -83,7 +83,7 @@ The UI automatically adapts to provide the best experience on any screen size.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/fitme-tracker.git
+git clone https://github.com/Brian454-nexus/fitme-tracker.git
 cd fitme-tracker
 ```
 
